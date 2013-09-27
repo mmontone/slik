@@ -17,7 +17,7 @@
 	       (:file "collections" :depends-on ("events"))
 
 	       ;; elementary machinery
-	       (:file "clx-support") ;; fixed dependency on event-loop
+	       (:file "clx-support" :depends-on ("slik")) ;; fixed dependency on event-loop
 	       (:file "event-loop" :depends-on ("clx-support"))
 	       (:file "initialize" :depends-on ("clx-support" "event-loop"))
 
@@ -48,4 +48,5 @@
 	       (:file "pictures" :depends-on ("events" "clx-support" "frames"))
 	       (:file "2d-plot" :depends-on ("pictures" "frames" "textlines" "postscript"))
 	       (:file "images" :depends-on ("clx-support")))))
+    :serial t
     :depends-on (:clx))
