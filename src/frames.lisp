@@ -187,7 +187,8 @@ border-width is 0, skip it."
   "Method for creating the CLX window and pixmap for any SLIK object."
 
   (unless (colormap f)
-    (setf (colormap f) (xlib:window-colormap (or parent *screen-root*))))
+    (setf (colormap f) ;(xlib:window-colormap (or parent *screen-root*))
+	  *screen-default-colormap*))
   (setf (window f)
     (xlib:create-window :parent (or parent *screen-root*)
 		       :x ulc-x :y ulc-y
