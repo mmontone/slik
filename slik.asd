@@ -46,7 +46,7 @@
 	       (:file "spreadsheets" :depends-on ("events" "clx-support" "frames" "readouts"
 							   "textlines" "buttons"))
 	       (:file "pictures" :depends-on ("events" "clx-support" "frames"))
-	       (:file "2d-plot" :depends-on ("pictures" "frames" "textlines" "postscript"))
+	       (:file "2d-plot" :depends-on ("pictures" "frames" "textlines" "postscript" "collections"))
 	       (:file "images" :depends-on ("clx-support")))))
     :serial t
     :depends-on (:clx))
