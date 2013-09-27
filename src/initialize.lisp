@@ -21,63 +21,63 @@
   (setq courier-bold-12
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*courier*bold-r*12-120*")))
+			       *display* "*courier*bold-r*")))
 	courier-bold-14
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*courier*bold-r*14-140*")))
+			       *display* "*courier*bold-r*")))
 	courier-bold-18
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*courier*bold-r*18-180*")))
+			       *display* "*courier*bold-r*")))
 	times-bold-12
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*times*bold-r*12-120*")))
+			       *display* "*times*bold-r*")))
 	times-bold-14
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*times*bold-r*14-140*")))
+			       *display* "*times*bold-r*")))
 	times-bold-18
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*times*bold-r*18-180*")))
+			       *display* "*times*bold-r*")))
 	helvetica-medium-12
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*medium-r*12-120*")))
+			       *display* "*helvetica*medium-r*")))
 	helvetica-medium-14
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*medium-r*14-140*")))
+			       *display* "*helvetica*medium-r*")))
 	helvetica-medium-18
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*medium-r*18-180*")))
+			       *display* "*helvetica*medium-r*")))
 	helvetica-bold-12
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*bold-r*12-120*")))
+			       *display* "*helvetica*bold-r*")))
 	helvetica-bold-14
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*bold-r*14-140*")))
+			       *display* "*helvetica*bold-r*")))
 	helvetica-bold-18
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*helvetica*bold-r*18-180*")))
+			       *display* "*helvetica*bold-r*")))
 	schoolbook-bold-12
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*schoolbook*bold-r*12-120*")))
+			       *display* "*schoolbook*bold-r*")))
 	schoolbook-bold-14
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*schoolbook*bold-r*14-140*")))
+			       *display* "*schoolbook*bold-r*")))
 	schoolbook-bold-18
 	(xlib:open-font *display*
 		       (first (xlib:list-font-names
-			       *display* "*schoolbook*bold-r*18-180*")))
+			       *display* "*schoolbook*bold-r*")))
 	)
   (setq *default-font* (symbol-value *default-font-name*)))
 
