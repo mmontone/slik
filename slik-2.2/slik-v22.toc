@@ -1,0 +1,63 @@
+\contentsline {chapter}{\numberline {1}Introduction}{5}
+\contentsline {chapter}{\numberline {2}SLIK concepts}{9}
+\contentsline {section}{\numberline {2.1}SLIK objects}{9}
+\contentsline {section}{\numberline {2.2}Dispatching X events}{10}
+\contentsline {section}{\numberline {2.3}Interaction of objects with each other}{11}
+\contentsline {subsection}{\numberline {2.3.1}Indirect invocation and abstract behavioral types}{11}
+\contentsline {subsection}{\numberline {2.3.2}Mediators: externalizing dependencies}{12}
+\contentsline {chapter}{\numberline {3}SLIK tutorial}{13}
+\contentsline {section}{\numberline {3.1}A ``Hello World'' example}{13}
+\contentsline {section}{\numberline {3.2}A more graphic example}{16}
+\contentsline {chapter}{\numberline {4}Functions for events and X}{21}
+\contentsline {section}{\numberline {4.1}CLX support for use of SLIK objects}{21}
+\contentsline {subsection}{\numberline {4.1.1}Fonts in SLIK}{22}
+\contentsline {subsection}{\numberline {4.1.2}Drawing graphics and text in color}{22}
+\contentsline {subsection}{\numberline {4.1.3}The default foreground and background}{25}
+\contentsline {subsection}{\numberline {4.1.4}Functions for common CLX operations}{25}
+\contentsline {section}{\numberline {4.2}X event processing}{26}
+\contentsline {subsection}{\numberline {4.2.1}Functions for handling X events}{26}
+\contentsline {subsection}{\numberline {4.2.2}Background processing and X event look-ahead}{28}
+\contentsline {section}{\numberline {4.3}Events for inter-object communication}{28}
+\contentsline {section}{\numberline {4.4}Collections (sets with behavior)}{30}
+\contentsline {chapter}{\numberline {5}Object reference guide}{33}
+\contentsline {section}{\numberline {5.1}Frame}{34}
+\contentsline {section}{\numberline {5.2}Simple controls}{38}
+\contentsline {subsection}{\numberline {5.2.1}Dial}{39}
+\contentsline {subsection}{\numberline {5.2.2}Slider}{40}
+\contentsline {subsection}{\numberline {5.2.3}Readout}{41}
+\contentsline {subsection}{\numberline {5.2.4}Textline}{42}
+\contentsline {subsection}{\numberline {5.2.5}Textbox}{44}
+\contentsline {subsection}{\numberline {5.2.6}Button}{45}
+\contentsline {subsection}{\numberline {5.2.7}Icon button}{47}
+\contentsline {subsection}{\numberline {5.2.8}EXIT button}{48}
+\contentsline {section}{\numberline {5.3}Compound controls}{49}
+\contentsline {subsection}{\numberline {5.3.1}Menu}{49}
+\contentsline {subsection}{\numberline {5.3.2}Dialbox}{50}
+\contentsline {subsection}{\numberline {5.3.3}Sliderbox}{51}
+\contentsline {subsection}{\numberline {5.3.4}Adjustable sliderbox}{53}
+\contentsline {subsection}{\numberline {5.3.5}Scrollbar}{54}
+\contentsline {subsection}{\numberline {5.3.6}Scrolling-list}{55}
+\contentsline {section}{\numberline {5.4}Dialog boxes}{58}
+\contentsline {subsection}{\numberline {5.4.1}Acknowledge box}{58}
+\contentsline {subsection}{\numberline {5.4.2}Confirmation box}{58}
+\contentsline {subsection}{\numberline {5.4.3}Popup menu}{58}
+\contentsline {subsection}{\numberline {5.4.4}Popup color menu}{59}
+\contentsline {subsection}{\numberline {5.4.5}Popup scroll menu}{59}
+\contentsline {subsection}{\numberline {5.4.6}Popup textline}{59}
+\contentsline {subsection}{\numberline {5.4.7}Popup textbox}{60}
+\contentsline {section}{\numberline {5.5}High level control panels}{60}
+\contentsline {subsection}{\numberline {5.5.1}Spreadsheet}{60}
+\contentsline {subsection}{\numberline {5.5.2}2d-plot}{63}
+\contentsline {chapter}{\numberline {6}Graphics and images}{67}
+\contentsline {section}{\numberline {6.1}Images}{67}
+\contentsline {section}{\numberline {6.2}Pictures}{69}
+\contentsline {section}{\numberline {6.3}Providing interactive input}{70}
+\contentsline {section}{\numberline {6.4}Pickable objects}{71}
+\contentsline {subsection}{\numberline {6.4.1}Rectangle}{74}
+\contentsline {subsection}{\numberline {6.4.2}Square}{74}
+\contentsline {subsection}{\numberline {6.4.3}Circle}{75}
+\contentsline {subsection}{\numberline {6.4.4}Segment}{75}
+\contentsline {chapter}{\numberline {7}Hard copy using PostScript}{77}
+\contentsline {chapter}{\numberline {8}Creating new kinds of SLIK objects}{81}
+\contentsline {section}{\numberline {8.1}Defining a new kind of SLIK object}{83}
+\contentsline {section}{\numberline {8.2}Specializing an existing SLIK class}{83}

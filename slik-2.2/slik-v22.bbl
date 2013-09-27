@@ -1,0 +1,78 @@
+\begin{thebibliography}{10}
+
+\bibitem{scheifler89}
+Robert~W. Scheifler et~al.
+\newblock {CLX}: {C}ommon {LISP} {X} interface.
+\newblock Technical report, Texas Instruments, Inc., 1989.
+
+\bibitem{mckay92}
+Scott McKay and William York.
+\newblock {C}ommon {L}isp {I}nterface {M}anager, release 2.0 specification.
+\newblock Technical report, Symbolics, Inc. and International Lisp Associates,
+  Inc., May 1992.
+
+\bibitem{myers90}
+Brad~A. Myers, Dario~A. Giuse, Roger~B. Dannenberg, Brad~Vander Zanden,
+  David~S. Kosbie, Edward Pervin, Andrew Mickish, and Philippe Marchal.
+\newblock Garnet: Comprehensive support for graphical, highly interactive user
+  interfaces.
+\newblock {\em Computer}, 23(11):71--85, November 1990.
+
+\bibitem{sullivan94}
+Kevin~J. Sullivan.
+\newblock {\em Mediators: Easing the Design and Evolution of Integrated
+  Systems}.
+\newblock PhD thesis, University of Washington, Seattle, Washington, 1994.
+
+\bibitem{openmotif2004}
+The~Open Group.
+\newblock Openmotif.
+\newblock \texttt{http://www.opengroup.org/openmotif/}.
+
+\bibitem{ousterhout94}
+John~K. Ousterhout.
+\newblock {\em Tcl and the Tk Toolkit}.
+\newblock Addison-Wesley Publishing Co., 1994.
+
+\bibitem{berlage91}
+T.~Berlage.
+\newblock {\em OSF/Motif: Concepts and Programming}.
+\newblock Addison-Wesley, Wokingham, United Kingdom, 1991.
+
+\bibitem{kalet96}
+Ira~J. Kalet, Jonathan~P. Jacky, Mary~M. Austin-Seymour, Sharon~M. Hummel,
+  Kevin~J. Sullivan, and Jonathan~M. Unger.
+\newblock Prism: A new approach to radiotherapy planning software.
+\newblock {\em International Journal of Radiation Oncology, Biology and
+  Physics}, 36(2):451--461, 1996.
+
+\bibitem{opengl99}
+{Open{GL} Architecture Review Board}, Mason Woo, Jackie Neider, Tom Davis, and
+  Dave Shreiner.
+\newblock {\em OpenGL Programming Guide}.
+\newblock Addison-Wesley, third edition, 1999.
+
+\bibitem{sullivan92}
+Kevin Sullivan and David Notkin.
+\newblock Reconciling environment integration and software evolution.
+\newblock {\em {ACM} Transactions on Software Engineering and Methods},
+  1(3):229--268, July 1992.
+
+\bibitem{sullivan96}
+Kevin~J. Sullivan, Ira~J. Kalet, and David Notkin.
+\newblock Evaluating the mediator method: Prism as a case study.
+\newblock {\em {IEEE} Transactions on Software Engineering}, 22(8):563--579,
+  August 1996.
+
+\bibitem{mcdonald91a}
+John~A. McDonald and Mark Niehaus.
+\newblock Announcements: an implementation of implicit invocation.
+\newblock Technical report, Department of Statistics, University of Washington,
+  Seattle, Washington, October 1991.
+
+\bibitem{steele90}
+Guy {Steele, Jr.}
+\newblock {\em {COMMON LISP}, the Language}.
+\newblock Digital Press, Burlington, Massachusetts, second edition, 1990.
+
+\end{thebibliography}

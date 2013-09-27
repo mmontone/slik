@@ -1,0 +1,225 @@
+This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.3.10)  22 JUN 2007 13:44
+entering extended mode
+**slik-v22
+(./slik-v22.tex
+LaTeX2e <2003/12/01>
+Babel <v3.8d> and hyphenation patterns for american, french, german, ngerman, b
+ahasa, basque, bulgarian, catalan, croatian, czech, danish, dutch, esperanto, e
+stonian, finnish, greek, icelandic, irish, italian, latin, magyar, norsk, polis
+h, portuges, romanian, russian, serbian, slovak, slovene, spanish, swedish, tur
+kish, ukrainian, nohyphenation, loaded.
+(/usr/share/texmf-tetex/tex/latex/base/report.cls
+Document Class: report 2004/02/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf-tetex/tex/latex/base/size11.clo
+File: size11.clo 2004/02/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/radonc/texmf/tex/latex/epsf.sty
+\epsffilein=\read1
+\epsfxsize=\dimen103
+\epsfysize=\dimen104
+\epsftsize=\dimen105
+\epsfrsize=\dimen106
+\epsftmp=\dimen107
+\pspoints=\dimen108
+)
+(/usr/share/texmf-tetex/tex/latex/psnfss/times.sty
+Package: times 2004/09/15 PSNFSS-v9.2 (SPQR) 
+)
+(/radonc/texmf/tex/latex/profile.tex)
+(/usr/share/texmf-tetex/tex/latex/base/makeidx.sty
+Package: makeidx 2000/03/29 v1.0m Standard LaTeX package
+)
+\@indexfile=\write3
+\openout3 = `slik-v22.idx'.
+
+
+Writing index file slik-v22.idx
+(./slik-v22.aux)
+\openout1 = `slik-v22.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 37.
+ (/usr/share/texmf-tetex/tex/latex/psnfss/ot1ptm.fd
+File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 56.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 56.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 56.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 60.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+) [1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 75.
+ (/usr/share/texmf-tetex/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 75.
+(/radonc/texmf/tex/latex/copyright.tex) [2]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24.88> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 78.
+ (./slik-v22.toc
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+ [3
+
+])
+\tf@toc=\write4
+\openout4 = `slik-v22.toc'.
+
+ [4]
+Chapter 1.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <20.74> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 82.
+[5
+
+] [6
+Non-PDF special ignored!] [7] [8
+
+]
+Chapter 2.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 223.
+[9] [10]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 351.
+ [11] [12]
+Chapter 3.
+[13
+
+] [14
+Non-PDF special ignored!]
+Underfull \vbox (badness 5802) has occurred while \output is active []
+
+ [15]
+[16
+Non-PDF special ignored!] [17] [18] [19
+
+] [20
+
+]
+Chapter 4.
+[21] [22]
+Underfull \vbox (badness 1895) has occurred while \output is active []
+
+ [23]
+[24] [25] [26] [27] [28] [29]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 1270.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 1270.
+ [30] [31] [32
+
+]
+Chapter 5.
+[33]
+Underfull \vbox (badness 1102) has occurred while \output is active []
+
+ [34]
+[35] [36] [37] [38] [39] [40] [41] [42] [43] [44]
+LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 2022.
+ [45]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [46]
+Underfull \vbox (badness 1173) has occurred while \output is active []
+
+ [47]
+[48] [49] [50] [51]
+Underfull \vbox (badness 5893) has occurred while \output is active []
+
+ [52]
+[53] [54] [55] [56]
+Underfull \vbox (badness 1635) has occurred while \output is active []
+
+ [57]
+[58] [59] [60] [61]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [62
+Non-PDF special ignored!] [63] [64] [65] [66
+
+]
+Chapter 6.
+[67]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [68]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [69]
+[70] [71]
+Underfull \vbox (badness 1024) has occurred while \output is active []
+
+ [72]
+[73] [74] [75] [76]
+Chapter 7.
+[77
+
+] [78] [79] [80
+
+]
+Chapter 8.
+[81] [82] (./slik-v22.bbl [83] [84
+
+]) [85] [86
+
+] (./slik-v22.ind [87
+
+] [88]
+[89] [90
+
+]) (./slik-v22.aux) ) 
+Here is how much of TeX's memory you used:
+ 523 strings out of 94499
+ 6324 string characters out of 1175740
+ 54360 words of memory out of 1000000
+ 3707 multiletter control sequences out of 10000+50000
+ 30245 words of font info for 60 fonts, out of 500000 for 2000
+ 580 hyphenation exceptions out of 8191
+ 23i,8n,19p,285b,211s stack positions out of 1500i,500n,5000p,200000b,5000s
+PDF statistics:
+ 315 PDF objects out of 300000
+ 0 named destinations out of 131072
+ 1 words of extra memory for PDF output out of 65536
+</usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmmi8.pfb>{
+/usr/share/texmf-tetex/fonts/enc/dvips/psnfss/8r.enc}</usr/share/texmf-tetex/fo
+nts/type1/urw/courier/ucrb8a.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm
+/cmr10.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmmi10.pfb></usr/shar
+e/texmf-tetex/fonts/type1/urw/times/utmri8a.pfb></usr/share/texmf-tetex/fonts/t
+ype1/urw/times/utmr8a.pfb></usr/share/texmf-tetex/fonts/type1/urw/times/utmb8a.
+pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmsy10.pfb></usr/share/texmf
+-tetex/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-tetex/fonts/type1/u
+rw/times/utmr8a.pfb>
+Output written on slik-v22.pdf (90 pages, 303525 bytes).

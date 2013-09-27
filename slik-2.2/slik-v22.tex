@@ -1,0 +1,3814 @@
+\documentclass[twoside,openright,11pt]{report}
+
+\setlength{\oddsidemargin}{0.5in}
+\setlength{\evensidemargin}{0in}
+\setlength{\marginparwidth}{0in}
+\setlength{\marginparsep}{0in}
+\setlength{\topmargin}{0in}
+\setlength{\textheight}{8.25in}
+\setlength{\textwidth}{6in}
+
+\usepackage{epsf}
+
+\usepackage{times}
+
+%\renewcommand{\familydefault}{cmss}
+
+\newcommand{\tp}[1]{\texttt{#1}}
+
+\pagestyle{headings}
+
+% reduce amount of whitespace latex requires a page to have:
+% from faq on web page.
+% this supposedly helps keep figures from piling up.
+% (first three numbers should be =. last number should be 1-first number)
+         \renewcommand\floatpagefraction{.9}
+         \renewcommand\topfraction{.9}
+         \renewcommand\bottomfraction{.9}
+         \renewcommand\textfraction{.1}
+
+\input{profile}
+
+\usepackage{makeidx}
+\makeindex
+
+%\usepackage[bookmarks=true]{hyperref}
+
+\begin{document}
+
+\begin{titlepage}
+
+\vspace*{1.2in}
+
+% put title, author, date info here explicitly
+\begin{minipage}{4.8in}
+\begin{center}
+{\LARGE SLIK Programmer's Guide\\[2mm]
+Version 2.2}\\[5mm]
+Ira J. Kalet\\[3mm]
+Technical Report 2006-09-01\\
+Radiation Oncology Department\\
+University of Washington\\
+Box 356043\\
+Seattle, Washington 98195-6043\\[2mm]
+\today
+\end{center}
+\end{minipage}
+
+\vspace*{5cm}
+
+The author's Internet mail address is \tp{ikalet@u.washington.edu}.
+
+This work was supported in part by NIH grant LM04174 from the National
+Library of Medicine, NIH contract CM97566 from the National Cancer
+Institute, a grant from General Electric Medical Systems, Milwaukee,
+WI. and a grant from IBM Corporation.
+
+It is a pleasure to acknowledge many helpful discussions with and
+contributions from Jon Jacky, Sharon Kromhout-Schiro, Matthew Lease,
+Mark Niehaus, Mark Phillips, Kevin Sullivan, Jon Unger and Craig
+Wilcox.
+
+\end{titlepage}
+
+\vspace*{6in}
+\copyright\ 1997,1998, 2000, 2003, 2004, 2006 by Ira J. Kalet.
+\input{copyright}
+
+\tableofcontents
+
+\newpage
+
+\chapter{Introduction}
+
+SLIK (Simple Lisp Interface Kit) is a graphical user interface tool
+kit written in Common LISP, using CLOS (the Common LISP Object System)
+and CLX (the Common LISP interface to the X window system protocol)
+\cite{scheifler89}.  The purpose of SLIK is to provide a facility for
+handling user interaction in an X window environment.  It provides a
+minimal set of facilities for building real applications, including
+the usual set of user interface devices or ``widgets''.  It is not
+intended to completely hide all the details of the X window system,
+but rather to encapsulate X event processing.  In the following it is
+assumed that the reader has some familiarity with CLX.
+
+This limited goal is in contrast to a more comprehensive system such
+as CLIM \cite{mckay92} or Garnet \cite{myers90}.  CLIM provides an
+abstract drawing model that can be realized on several window systems,
+not just X.  However, CLIM is a proprietary product.  At the time SLIK
+was started, CLIM provided very limited facilities for multi-window
+applications, instead using mainly a single window with
+non-overlapping panes as the basic user interface paradigm.  Garnet
+provides a comprehensive system for building applications.  It
+includes its own object system, an alternative to CLOS.  At the time
+Garnet was developed, CLOS was not highly developed or efficient, but
+these considerations are moot at present, with efficient and complete
+CLOS implementations coming standard in Common LISP systems from most
+sources.  Garnet is large, a consequence of providing a lot of
+capabilities.  One interesting aspect of Garnet is the provision for
+constraints.  These are important in interactive applications that
+have dynamically interacting components.  In SLIK such constraints can
+be implemented by using abstract behavioral types
+(section~\ref{sec:abt}), events (section~\ref{sec:events}), and
+mediators \cite{sullivan94}.  In Garnet, only ``one-way'' constraints
+are supported, but the event/mediator strategy used in SLIK is more
+general as it supports bidirectional constraints and can also
+represent other kinds of behavioral relationships.  Other systems have
+been constructed, including Common Lisp wrappers for the Motif
+libraries \cite{openmotif2004}, a Common Lisp call interface to Tcl/Tk
+\cite{ousterhout94}, and the like.
+
+The event scheme mentioned above is \emph{not} related to X window
+system event dispatching.  In the SLIK code X window system events are
+handled independently (and invisibly to the application).
+
+SLIK is not targeted for a particular window manager system or
+particular style of ``widget'' design (sometimes called ``look and
+feel'').  SLIK widgets are by default very plain, though some support
+is included for a style such as that typical of \textit{Motif}
+\cite{berlage91}.  Future implementations of SLIK may change the
+appearance of the devices, but the programmer's interface will not
+change.
+
+Figure~\ref{fig:prism-screen} shows a typical SLIK application, the
+Prism Radiation Treatment Planning (RTP) system \cite{kalet96}, with
+many control panels using different kinds of SLIK components.
+
+\begin{figure}[htb]
+\begin{center}
+\vspace*{2mm}
+\leavevmode
+\epsfbox{prism-screen.ps}
+\end{center}
+\caption{A screen display from the Prism RTP system, showing control
+panels, medical images and other objects derived from them, as well as
+graphic representations of radiation beams.}
+\label{fig:prism-screen}
+\end{figure}
+
+A program may contain lots of complex panels, each made from a SLIK
+frame, with lots of components.  The panels can be created and deleted
+by user action, as ``subpanels''.  The Prism system cited illustrates
+many complex uses of the SLIK system.
+
+This report includes a brief description of the basic design ideas of
+SLIK, a tutorial with examples of how to use the SLIK tool kit, and a
+programmer's reference manual.  If your application involves two
+dimensional graphics in addition to user interface widgets, but not
+image display, you will need to be familiar with CLX at the level of
+the CLX manual \cite{scheifler89}.  If you are using images, and/or
+3-dimensional graphics in the form of solid modeling, you will also
+need to be familiar with the basic concepts of OpenGL, as described in
+the OpenGL Programming Guide \cite{opengl99}.  While the OpenGL
+support in SLIK provides some higher level functionality than the
+standard OpenGL functions, at least a general familiarity is needed,
+and for more sophisticated displays, more detailed knowledge will be
+essential.  All OpenGL functions described in the OpenGL and GLX
+documentation are accessible as Common Lisp functions through wrapper
+code provided by Richard Mann and Larry Bales, as noted in the source
+code files.
+
+The SLIK system requires that the Common Lisp environment you are
+using has an implementation of the CLX library available through the
+use of the Common Lisp \tp{require} function or already preloaded (and
+thus the name, ``CLX'', appears in the \tp{*mondules*} list.  There is
+a call to \tp{require} in the \tp{slik.cl} source file, which will be
+the first file loaded when using the \tp{defsystem} facility (either
+\tp{mk:load-system} or \tp{mk:compile-system}).
+
+A copy of the complete source code for SLIK, and the \LaTeX\ source
+for this report may be obtained from
+\tp{www.radonc.washington.edu/medinfo/prism/}, the web site of the
+Prism Project of the University of Washington Radiation Oncology
+Department.  Unpack the tar file with the code into a directory you
+have chosen in which to work with SLIK applications.  This directory
+should then contain the files \tp{config.cl} and {defsystem.cl}, and
+you also should have two subdirectories, \tp{systemdefs} and
+\tp{slik}.  The \tp{systemdefs} directory will have the file
+\tp{slik.system} in it, and the \tp{slik} directory should have two
+directories in it, \tp{src} and \tp{bin}.  These two directories will
+contain the source code and compiled binaries.  When you unpack the
+tar file you downloaded, these will all be created for you and
+initially the \tp{bin} directory will be empty.
+
+To load the SLIK files into your Common LISP environment, you start up
+Lisp in the same directory as above.  Load the file named
+\tp{config.cl}, for example by typing \tp{(load~"config")} to the LISP
+interpreter.  To compile the files, after loading the \tp{config.cl}
+file, type in the LISP interpreter \tp{(mk:compile-system :slik)}.
+Once the files are compiled, you do not need to recompile them each
+time you want to use SLIK.  To load all the SLIK files, you just type
+\tp{(mk:load-system :slik)} after loading the \tp{config} file.
+
+If your application involves only two dimensional graphics, but not
+image display, it is sufficient to be familiar with CLX at the level
+of the CLX manual cited above \cite{scheifler89}.  If your
+application involves images and 3-dimensional graphics, e.g., solid
+modeling, you will need to be familiar with the basics of OpenGL, as
+described in the OpenGL Programming Guide \cite{opengl99}.  While
+SLIK's OpenGL support provides some higher level interfaces, at least
+a general familiarity with OpenGL programming will be needed, and for
+more sophisticated displays, a detailed knowledge will be essential.
+All OpenGL functions in the GL and GLU libraries are accessible
+through Common Lisp wrapper code.
+
+\chapter{SLIK concepts}
+
+SLIK provides three facilities for the interface builder: a collection
+of user-interface objects (dials, sliders, control panels, graphical
+pictures of data, etc.), a function for dispatching X window events to
+the objects that need to act on them, and a protocol for the objects
+to interact with each other and with user application code.
+
+\section{SLIK objects}
+
+The objects in SLIK that are available for use by the interface
+builder (programmer) are the typical Graphical User Interface (GUI)
+objects found in most interface tool kits.  They are implemented as
+instances of a class hierarchy.  This provides a straightforward way
+to add new kinds of objects.
+
+The \tp{frame} is the base class that encapsulates a lot of X details,
+and is able to handle an X event in its window.  The kinds of X events
+that frames handle include pointer entry and exit, pointer motion
+within the frame's window, button press and release, keystrokes, and
+window exposure.
+
+All the user interface objects in SLIK are implemented as subclasses
+of the frame class.  They include simple controls such as a dial with
+a pointer, compound controls such as a dialbox (which combines a dial
+and a textline), or a a dialog box which waits for input.  An
+application typically includes one or more \textit{control panels} of
+your own design.  A control panel is a frame with other frames
+arranged as you wish in the control panel window, possibly including
+graphic illustrations.  A control panel may have smaller control
+panels as its components, as well as individual controls or SLIK
+objects.
+
+A \textit{picture} is a frame that contains graphical and/or text
+information that is part of the application, e.g., a graph of some
+data or an image, or a 3-dimensional rendering of some physical
+object.  A picture can also respond to X events -- for example, the
+picture might show parts of an object that can be grabbed and pulled
+or stretched or rotated.
+
+No automated layout facilities are provided in SLIK.  The sizes of
+objects are specified in pixels, and the placement of windows of
+objects in the windows of parent objects is specified in the
+application code.  You must decide on the detailed design of the
+frames you create, or write your own code to compute an optimal
+layout, then use its output.
+
+The class hierarchy in SLIK, illustrated in
+figure~\ref{fig:slik-classes} is neither complex nor deep.  SLIK makes
+use of ``part-of'' relationships to build complex objects out of
+simpler ones.  For example, the dialbox described in section
+\ref{sec:dialbox} is a composite object with a dial and a textline as
+parts, not a class with multiple inheritance that is a subclass of
+both the dial and textline.  This allows each part to function
+independently, while the dialbox provides the relation between the
+parts, i.e., keeps the dial angle consistent with the text shown in
+the textline.
+
+\begin{figure}[htb]
+\begin{center}
+\vspace*{4mm}
+%\leavevmode
+%\epsfbox{slik-class-diagram.ps}
+\vspace*{4cm}
+\end{center}
+\caption{The class inheritance hierarchy of SLIK classes}
+\label{fig:slik-classes}
+\end{figure}
+
+\section{Dispatching X events}
+
+SLIK provides a simple function, \tp{process-events}, that handles the
+dispatching of X events.  It takes no parameters.  Your application
+code calls this function after 1) creating all the user interface
+components it needs, and 2) registering all the functions that are
+called when a control is manipulated by the user.
+
+The \tp{process-events} function uses \tp{clx:event-case} to wait for
+or poll for X events.  It in turn calls one of a set of generic
+functions for event processing, after looking up which SLIK object is
+associated with the window in which the X event occurred.  There is
+one such function for each kind of event that SLIK objects can handle.
+The function that is called depends on the type of event.  Each class
+of SLIK object has provided methods for these functions to do whatever
+is necessary in response to the corresponding event.
+
+This requires that every user interface object that is created must
+register with this event processor when the user interface object is
+created.  Standard SLIK objects do this automatically when they are
+created, and they unregister when they are destroyed.  So, you can
+create and delete SLIK objects without concern about X event handling.
+The event loop makes sure that each X event goes to the object in
+whose window it happened.  If your application needs no custom drawing
+or other CLX operations, your code will not refer to any CLX functions
+or data structures, and in that case you will not need to know any
+details about CLX.
+
+SLIK already includes event processing methods for each of the
+standard SLIK objects.  Therefore, when you write code to create
+instances of already defined objects in SLIK, you do not need to be
+concerned with X event processing at all.  The tutorial in chapter
+\ref{sec:tutorial} shows an example of a simple application using
+\tp{process-events}.
+
+If on the other hand, you wish to add a new kind of control or other
+object that will process X events, you need to provide a method for
+each kind of event to be processed by your kind of object.  This is
+described in detail in chapter \ref{sec:newobjs}.
+
+\section{Interaction of objects with each other} \label{sec:abt}
+
+Within the SLIK tool kit, components may need to notify other
+components when things change or events occur.  For example, when a
+dial pointer in a dialbox moves, a text representation of the dial
+setting should be updated, and vice versa.  Also, in the application
+itself, there will be interacting components.  A dial may be attached
+to some physical object in a simulation, for example, and when the
+dial changes, the simulation pictures must update.  One way to handle
+this is to code explicitly this interdependence of behavior in the
+objects themselves.  This explicit invocation leads to tangled
+systems. Object oriented programming languages such as CLOS do not
+avoid this problem, as explicit mention of particular objects by other
+objects, as well as generic function names, is still required.
+Indirect (or implicit) invocation, as exemplified by X callback
+registrations, and other implicit invocation mechanisms, does not
+solve this dependency problem, but only reverses the direction
+(instead of ``A calls B'', we would have ``B registers with A'', but
+each still refers explicitly to the other).  However, implicit
+invocation combined with a new kind of object, a mediator, can restore
+modularity.  The mediator makes the behavioral relationships between
+objects external to the description of those objects.  We use
+\emph{abstract behavioral types} \cite{sullivan92} as the means by
+which we add indirect invocation, and we use \emph{mediators}
+\cite{sullivan94,sullivan96} to dynamically create and remove
+relationships between objects while the program executes.
+
+\subsection{Indirect invocation and abstract behavioral types}
+
+An abstract behavioral type (ABT) defines a class of objects in terms
+of the operations that can be applied to the objects and in terms of
+the activities or events the object can announce.  Thus, ABT is an
+extension of the idea of \emph{abstract data type}, by adding the
+ideas of activities and events.  One ABT instance can observe and
+respond to the activities of another by registering one of its own
+operations with an activity (event) in the interface of the other ABT.
+This provides a mechanism for one or more objects to be notified when
+a source object announces an event.  The announcement or event
+interface is part of the object's interface to the surrounding, and
+\emph{not} an external device or global variable.
+
+Abstract behavioral types may be implemented by providing events,
+announcement of events, and mechanisms for registering interest in
+events.  An example of an implementation is described in
+\cite{mcdonald91a}.  In SLIK we provide an even simpler
+implementation, described in section \ref{sec:events}.  SLIK objects
+use this mechanism for interaction with each other in addition to
+providing an event interface to the applications that use them.  The
+attribute accessors and other functions of a SLIK object provide the
+usual object-oriented way in which external agents act on the object.
+Events provide a way for other objects to act in response to the
+announcement of an event associated with an object.
+
+An example of an ABT is illustrated in implementing objects that
+include variable numbers of elements.  The mathematical notion of a
+set is the natural starting point.  The idea of a set can be
+supplemented with events that announce when an element is inserted or
+deleted, thus making the interaction of the set with other objects
+straightforward and consistent with the rest of the tool kit.  SLIK
+includes a small package, the \tp{collections} package, that
+implements the \tp{collection}, an ABT that provides this extension of
+the idea of a set.  It is described in section \ref{sec:collections}.
+
+\subsection{Mediators: externalizing dependencies}
+
+The basic type, \tp{event}, provides a simple one-way interface for
+implicit invocation.  In SLIK, as well as in other applications, more
+complex relationships are sometimes required.  An example of such a
+relationship is the maintenance of a one-to-one relationship between
+two sets, e.g., a set of objects in a simulation and the set of
+control panels by which the user can manipulate them.  Another example
+is the case where an attribute of one object must be kept consistent
+with an attribute of another object, a constraint relationship.
+Implementing this with events does not avoid the possibility of a
+circularity or infinite loop.
+
+We handle these relationships by constructing additional objects we
+call ``mediators''.  The purpose of a mediator is to explicitly and
+externally express these complex relationships rather than embed them
+in the design of the related objects.  This makes the objects
+themselves more modular and makes it easy to understand how the
+relationships work.  In some cases, it becomes possible to describe a
+family of relationships, and thus reuse the mediator code as well as
+the object code.  Behavior abstraction separates the behavior of an
+object from its use in more complex structures.  Mediators then can
+explicitly provide the connections between interacting objects.
+
+The Prism system, shown in figure~\ref{fig:prism-screen}, is based on
+the use of Behavioral Entity-Relationship modeling, abstract
+behavioral types and mediators.  Application of Behavioral
+Entity-Relationship modeling to design problems in general and in
+Prism (and the use of ABT in the implementation) is described in more
+detail in other publications \cite{sullivan94,sullivan96}.
+
+\chapter{SLIK tutorial} \label{sec:tutorial}
+
+Programs that use the SLIK tool kit usually have five parts: a call to
+the \tp{initialize} function to open the display, a collection of
+declarations that create the user interface components of your
+application, declarations of the actions to be taken when each user
+interface component responds to user input, a call to the
+\tp{process-events} function to handle X event processing, and (when
+the event processing terminates) a call to the \tp{terminate} function
+to close the display connection (which also unmaps the windows your
+application created).  You may also include other code, e.g., to read
+or write data to/from files, initialize and clean up application data
+structures, etc.
+
+The examples in this chapter are just Lisp functions which take the
+name of a display host as a single input parameter.  So, to run one,
+you start a Lisp session, load the slik files (compile them if you
+like, for higher performance), then type in the code shown in the
+example (or load it from a file).  Then, to run the example, type at
+the Lisp prompt (if you are trying \tp{sample1})
+\tp{(sample1~"}\textit{display-hostname}\tp{")}, where
+\textit{display-hostname} is either a blank string for the local
+display, or the host name (without ``:0'') of the display you are
+using.  The following sections show some simple examples and
+explanatory text for each.
+
+\section{A ``Hello World'' example}
+
+The first program example creates a box with two buttons, one that
+changes its label when turned on and off (it is a button of type
+\tp{:hold}) and the other is an exit button with a label other than
+the default.  This is a little more complex than the usual ``Hello
+World'' example, but complete enough to include some action and a
+graceful exit.  The initial appearance of the box is shown in
+figure~\ref{fig:sample1-screen}.
+
+\begin{figure}[htb]
+\begin{center}
+\vspace*{4mm}
+\leavevmode
+\epsfbox{hello-world.ps}
+\end{center}
+\caption{The initial appearance of the example function,
+\tp{sample1}.} \label{fig:sample1-screen}
+\end{figure}
+
+The complete code is shown in figure~\ref{fig:sample1}.
+
+\begin{figure}[htb]
+
+\rule{\textwidth}{1mm}
+
+\begin{verbatim}
+(defun sample1 (&optional host)
+  (sl:initialize host)
+  (let* ((fr (sl:make-frame 150 225 :bg-color 'sl:gray))
+         (win (sl:window fr))
+         (eb (sl:make-exit-button 100 75
+                                  :parent win :label "I'm done"
+                                  :fg-color 'sl:white
+                                  :ulc-x 25 :ulc-y 125))
+         (hb (sl:make-button 100 75
+                             :parent win :label "Press here"
+                             :ulc-x 25 :ulc-y 25
+                             :fg-color 'sl:white
+                             :bg-color 'sl:blue)))
+    (ev:add-notify hb (sl:button-on hb) 'say-hello)
+    (ev:add-notify hb (sl:button-off hb) 'reset-it)
+    (sl:process-events)
+    (sl:terminate)))
+
+(defun say-hello (rcvr btn)
+   (declare (ignore rcvr))
+   (setf (sl:label btn) "Hello World"))
+
+(defun reset-it (rcvr btn)
+   (declare (ignore rcvr))
+   (setf (sl:label btn) "Press here"))
+\end{verbatim}
+
+\rule{\textwidth}{1mm}
+
+\caption{A sample SLIK program} \label{fig:sample1}
+
+\end{figure}
+
+The following explains each of the function calls in the example in
+figure \ref{fig:sample1}.
+
+\begin{itemize}
+
+\item \tp{(sl:initialize host)} opens the display on \emph{host},
+allocates the standard SLIK color entries in the screen default
+colormap and associates them with SLIK color symbols, allocates the
+standard fonts ans associates them with SLIK font name symbols, and
+performs any other initializations that are standard across all SLIK
+applications.
+
+\item \tp{(sl:make-frame 150 225 :bg-color \ldots)} creates a frame
+whose window has a gray background and into which all other user
+interface objects will be put.  The size allows enough room for the
+other devices to be laid out reasonably.
+
+\item \tp{(sl:make-exit-button 100 75 :parent win \ldots)} creates a
+button that will terminate the \tp{process-events} loop when pressed.
+The \tp{:ulc-x} and \tp{:ulc-y} keyword parameters specify in pixels
+the location of the upper left corner of the Exit button window with
+respect to the window of the parent frame.  These numbers put it in
+the lower part of the frame.
+
+\item \tp{(sl:make-button 100 75 \ldots)} creates a button that
+initially has the label ``Press here'' in white on a blue background.
+It is located in the upper part of the frame \tp{fr}.  By default, the
+button will have a raised border, which changes to lowered (an
+indented kind of look) when pressed.  Also by default, the button is
+of type ``hold'', which means it stays on after it is pressed, and
+then pressing again clicks it off.
+ 
+\item The \tp{add-notify} function is used to add an entry to the
+notification list for an event.  When the event is announced, the
+specified action function will be called.  \tp{(ev:add-notify hb
+(sl:button-on hb) 'say-hello)} specifies that when the button turns on
+(usually because the user pressed the left mouse button with the
+pointer over the button \tp{hb}, the function \tp{say-hello} should be
+called, which results in changing the label to ``Hello world''.  The
+other call to \tp{add-notify} provides an action for the
+\tp{button-off} event.  Its action function changes the label back to
+its original value.
+
+\item \tp{sl:process-events} executes the event loop.  Notification of
+X events is given as needed to objects that are registered in the SLIK
+internal X event table.  The user can press the buttons and the
+actions happen, until the user presses the exit button.  Then the
+\tp{process-events} function returns.
+
+\item \tp{sl:terminate} closes the connection to the display.
+
+\item \tp{say-hello} is a function that sets the \tp{label} slot of
+the button \tp{(btn)} that announced its ``on'' event to the new value
+\tp{"Hello World"}.  In this case the announcer and the receiver (or
+target) are the same and you can actually reference either one.
+
+\item \tp{reset-it} is a function that resets the value of the label
+to the original \tp{"Press here"}, when the button is turned off (by
+the user pressing the button again).
+
+\end{itemize}
+
+Note that in this example, no CLX functions are explicitly needed in
+the program, since no customized or application specific graphic
+display is present.  The text is input to the widget constructors.
+
+\section{A more graphic example}
+
+In the second example, \tp{sample2}, there is a picture in addition to
+some controls.  In the picture is a box in the middle, and a line
+going out to a small ball.  There is a dialbox for changing the
+direction at which the ball and line are drawn, so dragging the dial
+pointer in the dialbox swings the ball around the box in the middle of
+the picture.  There is a sliderbox that controls the length of the
+radial line.  The color button provides a way to change the color of
+the ball.
+
+A snapshot of the window of \tp{sample2} is shown in
+figure~\ref{fig:sample2-screen}.
+
+\begin{figure}[htb]
+\begin{center}
+\vspace*{4mm}
+\leavevmode
+\epsfbox{graphic-example.ps}
+\end{center}
+\caption{The initial appearance of the example function,
+\tp{sample2}.} \label{fig:sample2-screen}
+\end{figure}
+
+The code for \tp{sample2} is shown in figures~\ref{fig:sample2} and
+\ref{fig:sample2a}.
+
+\begin{figure}[htb]
+
+\rule{\textwidth}{1mm}
+
+\begin{verbatim}
+(defun sample2 (&optional host)
+  (sl:initialize host)
+  (let* ((radius 100) ;; initial radius of orbit
+         (angle 45.0) ;; initial angle position
+         (color 'sl:red) ;; initial color of planet
+         (fr (sl:make-frame 790 512))
+         (win (sl:window fr))
+         (eb1 (sl:make-exit-button 100 50 :label "Done"
+                    :parent win :ulc-x 90 :ulc-y 450))
+         (d1 (sl:make-dialbox 50 :parent win :ulc-x 85 :ulc-y 40
+                    :title "Orbit Angle" :angle angle))
+         (b1 (sl:make-button 100 50 :label "Color" :parent win
+                    :ulc-x 90 :ulc-y 250 :button-type :momentary
+                    :fg-color color))
+         (s1 (sl:make-sliderbox 250 30 20.0 250.0 250.0
+                    :title "Radius: " :parent win :setting radius
+                    :fg-color 'sl:cyan :ulc-x 10 :ulc-y 350))
+         (pic (sl:make-picture 512 512 :parent win
+                    :fg-color 'sl:green :ulc-x 278)))
+     (ev:add-notify pic (sl:value-changed s1) ;; respond to slider
+                    #'(lambda (pict sb newrad)
+                         (setf radius newrad)
+                         (drawpic pict radius angle color)))
+     (ev:add-notify pic (sl:button-on b1) ;; respond to new color
+                    #'(lambda (pict bt)
+                         (let ((temp (sl:popup-color-menu)))
+                           (when temp
+                              (setf color temp)
+                              (setf (sl:fg-color bt) temp)
+                              (drawpic pict radius angle color)))
+                         (setf (sl:on bt) nil)))
+     (ev:add-notify pic (sl:value-changed d1) ; respond to dialbox
+                    #'(lambda (pict db newang)
+                         (setf angle newang)
+                         (drawpic pict radius angle color)))
+     (drawpic pic radius angle color) ;; need to draw initially
+     (sl:process-events) ;; from here on it is automatic
+     (sl:terminate)))
+\end{verbatim}
+
+\rule{\textwidth}{1mm}
+
+\caption{A second SLIK sample program} \label{fig:sample2}
+\end{figure}
+
+The code in \tp{sample2} shows that an object can be notified of more
+than one type of event, and can respond differently to different
+events.  This also illustrates the use of pictures for graphics and
+the use of popup dialog boxes (the popup color menu).
+
+Note that this example involves drawing a picture, and therefore
+includes some direct calls to CLX functions.  However, they are all
+isolated in the \tp{drawpic} function.
+
+The \tp{let} form creates local variables to hold the current values
+of the radial distance of the ball from the box in the center, the
+angle at which the ball and line are drawn, and the color of the ball.
+The numbers for size and positioning were determined by estimating and
+by trial and error.  There is no particular significance to them.
+
+\tp{(ev:add-notify pic (sl:value-changed s1)\ldots} sets the new
+radius value in the picture when the slider changes.
+
+\tp{(ev:add-notify pic (sl:button-on b1)\ldots} updates the color of
+the ball but only if the popup color menu returns a color rather than
+\tp{nil}.  It also updates the foreground color of the button.  It is
+necessary to explicitly turn the button off in the action function,
+because the \emph{button-up} X event is discarded by the popup color
+menu function, even though the button is of type \tp{:momentary}.
+
+\tp{(ev:add-notify pic (sl:value-changed d1)\ldots} sets the new angle
+when the dial pointer is moved.  Note when you try this code that the
+angle in the picture is the conventional mathematical angle, with 0
+degrees to the right, increasing counterclockwise.  The convention for
+dials in SLIK is that the dial is at 0 degrees when the pointer is at
+the top, with increasing values clockwise.
+
+\clearpage % makes sure the figure is output here
+
+The code in figure~\ref{fig:sample2a} defines the \tp{drawpic}
+function that draws the graphics into the picture.  As explained in
+section~\ref{sec:color}, SLIK includes some preallocated graphic
+contexts for the primary colors, and they are retrieved by the
+\tp{color-gc} function, which takes a SLIK color symbol as input, and
+returns the graphic context for that color.
+
+As explained in section~\ref{sec:picture}, a \tp{picture} contains a
+window, and also a background pixmap.  If all the graphics are drawn
+into the background pixmap, then you must \tp{erase} the window in
+order for the graphics to appear.  It is also possible to use the
+background pixmap for an image and the window for graphics.  In this
+case, the graphics would have to be redrawn on exposure events.  The
+example here draws everything into the background pixmap and uses
+\tp{erase} to make the data visible.
+
+All of the action functions in this second example are anonymous
+lambda functions.  It works the same whether you write this way or
+create named functions.  Anything acceptable to the Common LISP
+\tp{apply} function may be used with \tp{add-notify}.  The choice
+between named functions or lambda expressions will depend on the
+larger context of the application.
+
+\begin{figure}[htb]
+
+\rule{\textwidth}{1mm}
+
+\begin{verbatim}
+(defconstant pi-over-180 (/ pi 180.0) "A handy constant")
+
+(defun drawpic (pic rad ang col)
+   (let ((bg (sl:color-gc (sl:bg-color pic)))
+         (fg (sl:color-gc (sl:fg-color pic)))
+         (px (sl:pixmap pic))
+         (x (round (* rad (cos (* pi-over-180 ang)))))
+         (y (round (* rad (sin (* pi-over-180 ang))))))
+     (clx:draw-rectangle px bg 0 0 512 512 t) ;; erase pixmap
+     (clx:draw-rectangle px fg 240 240 32 32 t) ;; draw center
+     (clx:draw-line px fg 256 256 x (- y) t) ;; draw radial line
+     (clx:draw-arc px                        ;; draw ball
+                   (sl:color-gc col)
+                   (+ 256 x -10)
+                   (- 256 y 10)
+                   20 20 0.0 (* 2.0 pi) t)
+     (sl:erase pic))) ;; make pixmap data appear in the window
+\end{verbatim}
+
+\rule{\textwidth}{1mm}
+
+\caption{Additional code for sample2} \label{fig:sample2a}
+\end{figure}
+
+\chapter{Functions for events and X}
+
+In this chapter and the following ones we list and describe all the
+functions (ordinary and generic), as well as the variables and
+constants, that are exported by SLIK for use in application programs.
+All exported symbols are listed here.  To use them, the best method is
+to specify explicitly the package name, \tp{slik}, or the package
+nickname \tp{sl} with the symbol name (and similarly, \tp{events}, or
+its nickname, \tp{ev}, when you use the \tp{events} functions, and
+\tp{collections} or its nickname, \tp{coll}, when you use the
+\tp{collections} functions).  It is recommended that you \emph{not}
+use \tp{use-package} or \tp{import}.
+
+All symbols described here and not prefixed by a package name are in
+the \tp{slik} package, except those described in section
+\ref{sec:events}, which are in the \tp{events} package, and those
+described in section \ref{sec:collections}, which are in the
+\tp{collections} package.
+
+Your application should call \tp{initialize} first, then create the
+necessary controls, control panels and pictures, and then call
+\tp{process-events}.  The \tp{process-events} function returns when
+some object's specific event processing method returns something other
+than \tp{nil}.  This usually is a ``terminate the application'' event
+(an ``Exit'' button, perhaps).  Your application code then can take
+whatever action is needed on termination, usually including a call to
+the \tp{terminate} function.
+
+\section{CLX support for use of SLIK objects} \label{sec:clx-support}
+
+The intent of SLIK is not to replace or hide CLX or OpenGL, but to
+just hide CLX event dispatching and provide some standard types of
+user interface devices.  You use CLX functions to draw into windows in
+SLIK frames that are used for your application's graphics and images.
+You do not use CLX functions directly with other pre-built (supplied)
+SLIK objects (e.g., dials, sliders, scrollers, etc.) since they
+already have their own code for rendering, and interacting with X
+events.  The \emph{picture} provides an interface for forwarding X
+events to your application.  You should not write code that directly
+handles X events, except when you define new widget types to be added
+to the SLIK tool kit as described in chapter \ref{sec:newobjs}.  To
+make it easier to use commonly used fonts, colors, etc., for SLIK
+objects, some predefined fonts, colors and other data are already
+provided in SLIK.
+
+Your program can specify the host on which the X server resides.  SLIK
+creates a single connection to the display being used, which is the
+default screen and display of the specified host.  The following
+function returns the string naming the current host, in case it is
+needed in your program after your program calls the \tp{sl:initialize}
+function.
+
+\function{host\index{host}}{}
+{returns the string that names the host on which your program has
+opened the display connection.  If the host parameter was not supplied
+in the input to the \tp{initialize} function or was specified as the
+empty string, the value returned by the Common LISP function
+\tp{short-site-name} is returned.}
+
+When using OpenGL with SLIK your program should call the
+\tp{make-gl-buffer} function.  This function opens a separate
+connection to the display, allocates OpenGL data structures and a SLIK
+\tp{gl-buffer}.  The \tp{gl-buffer} maintains the relationship between
+a CLX pixmap in the SLIK environment and an OpenGL ``rendering
+surface'', or \tp{glx-pixmap}.
+
+\subsection{Fonts in SLIK} \index{fonts}
+
+While it is possible to use any available fonts in your local
+implementation of CLX, with the facilities provided by CLX, it is
+cumbersome.  For convenience, SLIK predefines a set of named fonts,
+with four type styles in three sizes each.  The four type styles are
+Courier, Times, Helvetica and Schoolbook.  The three sizes are 12
+point, 14 point and 18 point.  For some, different weights are
+available.  The names refer to a family of type styles, and for each
+combination of style, size and weight, the first font in the list
+returned by \tp{clx:list-font-names} is assigned to the corresponding
+name.  The symbols in SLIK that have the corresponding fonts as their
+values are listed in Table \ref{tab:fonts} along with the matching
+string used to find them in the local server's font repertoire.  These
+symbols are used in a way that returns their values, i.e., when a font
+is needed, use the symbol, not quoted, and it will evaluate to a
+\tp{clx:font} object.
+
+\index{courier-bold-12} \index{courier-bold-14}
+\index{courier-bold-18} \index{times-bold-12} \index{times-bold-14}
+\index{times-bold-18} \index{helvetica-medium-12}
+\index{helvetica-medium-14} \index{helvetica-medium-18}
+\index{helvetica-bold-12} \index{helvetica-bold-14}
+\index{helvetica-bold-18} \index{schoolbook-bold-12}
+\index{schoolbook-bold-14} \index{schoolbook-bold-18}
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|} \hline
+SLIK symbol & matching string \\ \hline \hline
+\tp{courier-bold-12} & \tp{"*courier*bold-r*12-120*"} \\ \hline
+\tp{courier-bold-14} & \tp{"*courier*bold-r*14-140*"} \\ \hline
+\tp{courier-bold-18} & \tp{"*courier*bold-r*18-180*"} \\ \hline
+\tp{times-bold-12} & \tp{"*times*bold-r*12-120*"} \\ \hline
+\tp{times-bold-14} & \tp{"*times*bold-r*14-140*"} \\ \hline
+\tp{times-bold-18} & \tp{"*times*bold-r*18-180*"} \\ \hline
+\tp{helvetica-medium-12} & \tp{"*helvetica*medium-r*12-120*"} \\ \hline
+\tp{helvetica-medium-14} & \tp{"*helvetica*medium-r*14-140*"} \\ \hline
+\tp{helvetica-medium-18} & \tp{"*helvetica*medium-r*18-180*"} \\ \hline
+\tp{helvetica-bold-12} & \tp{"*helvetica*bold-r*12-120*"} \\ \hline
+\tp{helvetica-bold-14} & \tp{"*helvetica*bold-r*14-140*"} \\ \hline
+\tp{helvetica-bold-18} & \tp{"*helvetica*bold-r*18-180*"} \\ \hline
+\tp{schoolbook-bold-12} & \tp{"*schoolbook*bold-r*12-120*"} \\ \hline
+\tp{schoolbook-bold-14} & \tp{"*schoolbook*bold-r*14-140*"} \\ \hline
+\tp{schoolbook-bold-18} & \tp{"*schoolbook*bold-r*18-180*"} \\ \hline
+\end{tabular}
+\caption{SLIK names and strings used in \tp{clx:list-font-names}
+\label{tab:fonts}} \index{fonts, table of}
+\end{table}
+
+SLIK includes a global variable, \tp{*default-font-name*}, whose
+\emph{value} is a symbol naming the default font to be used for the
+preallocated graphic contexts, and to be used in a frame when no font
+is specified in the call to \tp{make-frame}.  Its default value is
+\tp{'helvetica-bold-14} but it may be set before calling the
+\tp{initialize} function, if an application needs a different default
+value.  The actual default font that is used is set in \tp{initialize}
+so it cannot be changed afterward.
+
+\variable{*default-font-name*\index{*default-font-name*}}
+{a symbol that specifies at initialization which named font to make
+the default font for SLIK operations such as creating a frame.  Its
+initial value is \tp{'helvetica-bold-14}.}
+
+\subsection{Drawing graphics and text in color} \label{sec:color}
+
+SLIK includes some support to simplify the specification of colors for
+SLIK objects and for graphics and text in pictures.  This includes
+provision of named colors and graphic contexts for them.
+
+The SLIK system allocates for shared use a modest number of color
+entries in the screen default colormap (the primary colors, the
+secondary colors, black, white and gray, plus dashed versions of each
+of these colors, plus an ``invisible'' color), and 128 entries for
+gray level values for use in displaying gray scale images, such as
+medical images.  On an 8 bit display this usually leaves enough
+colormap entries for the window manager and other common applications.
+SLIK uses this colormap rather than creating its own.  The colors are
+assigned names (symbols in the \tp{slik} package).
+
+(insert A here)
+
+You may create and use your own colormaps for graphics and images in
+SLIK frames, but that may cause temporary strange appearances in other
+objects, including SLIK widgets your code may have created.  It is
+strongly recommended that you use the screen default colormap instead
+of a private colormap.  It is possible that in an application
+different colormaps are needed for different windows.  This is
+supported, as the \tp{frame} class includes a \tp{colormap} attribute,
+and support for allocating colormap entries in each colormap, for the
+standard SLIK named colors.
+
+Since creating or modifying a CLX \tp{gcontext} object is
+time-consuming, SLIK provides graphic context objects for each of the
+color entries mentioned above (i.e., the graphic context foreground
+attribute is set to the named color).  Each graphic context is
+obtained from the symbol in the SLIK package that names its foreground
+color, by using the SLIK \tp{color-gc} function.
+
+\function{color-gc\index{color-gc}}{color-symbol \&optional colormap}
+{returns the graphic context corresponding to the named color and the
+specified colormap.  If no colormap is provided, the screen default
+colormap is used.}
+
+Since this function takes an optional argument, the colormap, it is
+possible to have graphic contexts for the same named color available
+in the situation where different windows have different colormaps.
+Having and using these ready-made graphic contexts provides
+considerable run-time performance improvement over using the
+\tp{clx:with-gcontext} macro or explicitly making or modifying them as
+needed.  For example:
+
+\variable{red\index{red}}
+{is the SLIK symbol that provides access to one or more CLX graphic
+contexts for drawing lines and text in red.}
+
+Other color symbols defined by SLIK include \tp{green\index{green}}
+and \tp{blue\index{blue}}, \tp{yellow\index{yellow}},
+\tp{magenta\index{magenta}}, \tp{cyan\index{cyan}},
+\tp{white\index{white}}, \tp{black\index{black}}, and
+\tp{gray\index{gray}}, all similar to \tp{red} above.  All these
+graphic contexts are created with the SLIK default font (set by the
+\tp{initialize} function, from the value of the global symbol
+\tp{*default-font-name*}).  The available fonts are listed in table
+\ref{tab:fonts}.  The background color is set to black, except the
+graphic context for black, whose background color is set to white.
+
+These symbols for named colors are given their initial graphic
+contexts (corresponding to the screen default colormap) for the
+primary colors by the \tp{initialize} function (section
+\ref{sec:xeventfns}).  If you use additional colormaps, you can call
+the SLIK function \tp{make-primary-gc} to add a set of graphic
+contexts for the additional colormap.
+
+\function{make-primary-gc\index{make-primary-gc}}{colormap}
+{creates graphic contexts for the primary colors, using the specified
+colormap, to save performance on drawing in different colors.}
+
+There is also a dashed version of each color, for use in drawing
+dashed lines.  The dashed versions of the colors are named
+\tp{red-dashed}, \tp{green-dashed}, \tp{blue-dashed}, and so
+on.\index{dashed colors}
+
+Furthermore, there is a color called \tp{invisible}\index{invisible}.
+The corresponding graphic context has its writing mode set so that
+there is no effect on the display, so in effect it is a NO-OP.
+
+Two functions help match up the two sets of colors, one for obtaining
+the dashed version corresponding to a given solid color graphic
+context and the other for the reverse mapping.
+
+\function{find-dashed-color\index{find-dashed-color}}{col}
+{returns the graphic context for the dashed color corresponding to the
+graphic context for solid color \textit{col}.  Returns nil if a solid
+color was not supplied.  The invisible color maps to invisible.}
+
+\function{find-solid-color\index{find-solid-color}}{col}
+{returns the graphic context for the solid color corresponding to the
+graphic context for dashed color \textit{col}.  Returns nil if a
+dashed color was not supplied.  The invisible color maps to
+invisible.}
+
+A color attribute of an object should be one of the above symbols in
+the \tp{SLIK} package.  Then the graphic context can be obtained by
+using the SLIK function \tp{color-gc}.  For example, if the
+symbol is stored as an attribute of a frame \tp{f}, e.g., the
+foreground color, you can obtain the graphic context with the
+expression \tp{(color-gc~(sl:fg-color~f)~(colormap~f))}.
+
+If in your code you need a graphic context for a specific color,
+rather than the color as an attribute of some object, you use the
+graphic context obtained as above, e.g., to draw the text ``Warning''
+in red, in a window \tp{win}, at pixel coordinates (10,50), you
+evaluate the expression \tp{(clx:draw-glyphs win (color-gc 'sl:red) 10
+50 "Warning")}.  In this case, the optional colormap argument was
+omitted, so the screen default colormap is used for the graphic
+context lookup.
+
+SLIK includes an interactive menu function, the \tp{popup-color-menu},
+to use as a convenient color selection user interface device.  It is
+described in section \ref{sec:colormenu} on page
+\pageref{sec:colormenu}.  The popup-color-menu displays for selection
+only the named non-dashed colors listed above.
+
+\subsection{The default foreground and background}
+
+SLIK uses the global (internal) variables \tp{default-fg} and
+\tp{default-bg} to store graphic contexts for the default foreground
+color and background color respectively, for SLIK objects.  These
+colors are gray levels, determined in turn by global variables
+\tp{*fg-level*} and \tp{*bg-level*}.  Your program may set
+\tp{*fg-level*} and \tp{*bg-level*} \emph{before} calling
+\tp{sl:initialize}, if you want a different background and/or
+foreground default for your application.  The standard value used for
+\tp{*fg-level*} is 0.0 (black), and for \tp{*bg-level*} it is 0.75.
+This gives a ``black on gray'' which is commonly used in many window
+based applications.  It further facilitates the use of the
+\emph{raised/lowered} border look on buttons and textlines.  This
+``3-D'' button look is achieved simply by using white for the upper
+and left borders and black for the lower and right borders, or vice
+versa, with gray background, giving an appearance that emulates
+lighting from the upper left.  This only works well if the containing
+frame has a gray background also.  Whether this is used or not is
+controlled by the default border style, which is also parametrized and
+may be set by an application at any time.  It is determined by the
+\tp{*default-border-style*} global variable.
+
+\variable{*fg-level*\index{*fg-level*}}
+{a real number whose value is between 0.0 (black) and 1.0 (white),
+used by the \tp{initialize} function to define a default foreground
+graphic context.  The default value is 0.0 but it may be reset to any
+other allowed value by the application code, before calling
+\tp{initialize}.}
+
+\variable{*bg-level*\index{*bg-level*}}
+{a real number whose value is between 0.0 (black) and 1.0 (white),
+used by the \tp{initialize} function to define a default background
+graphic context.  The default value is 0.75 but it may be reset to any
+other allowed value by the application code, before calling
+\tp{initialize}.}
+
+\variable{*default-border-style*\index{*default-border-style*}}
+{a symbol, \tp{:flat} for no 3-D effect, \tp{:raised} to make the
+object look slightly raised with respect to the background panel, or
+\tp{:lowered} to make the object look slightly depressed with respect
+to the background.}
+
+\subsection{Functions for common CLX operations}
+
+\function{initialize\index{initialize}}{\&optional host}
+{opens the display on the host specified (defaults to the local host,
+or the previous value for host if it was called earlier).  This
+function also allocates the color entries in the screen default
+colormap and the various named fonts.  If successful, returns
+\tp{nil}.  If the connection to the specified or default host fails,
+it returns a message in the form of a string.}
+
+Your application should call the \tp{initialize} function before using
+any other SLIK facilities, and call the \tp{terminate} function
+described in section \ref{sec:xeventfns} at the end, after all user
+interaction is completed.
+
+\function{flush-output\index{flush-output}}{}
+{forces the output queue to be flushed to the display currently opened
+by your application (in the call to \tp{initialize}).}
+
+\function{font-height\index{font-height}}{f}
+{returns the total vertical size of the font \tp{f}, fro the top of
+the tallest character glyph to the bottom of the glyph with the
+longest descender (most below the baseline).}
+
+\function{make-duplicate-gc\index{make-duplicate-gc}}
+{\&optional base-gc}
+{returns a new instance of a graphic context, copied from the supplied
+\tp{base-gc}, or created fresh using the screen root window.  Used for
+making a modified graphic context for use in drawing operations that
+do not use the default line width or other attributes.  If
+\tp{base-gc} is not supplied, the graphic context is a duplicate of
+the SLIK graphic context called \tp{white}.}
+
+\function{make-square-pixmap\index{make-square-pixmap}}
+{size \&optional fill-p drawable depth}
+{Creates and returns a pixmap with the specified parameter attributes.
+Fills the pixmap with a black background if fill-p is true.  If not
+provided, depth and drawable are taken from the screen root window.}
+
+\section{X event processing} \label{sec:xeventfns}
+
+SLIK includes functions that respond to X events and dispatch to the
+action functions provided by your application.  The X event processing
+is separate from the SLIK event processing.  An X event is reported to
+the SLIK object in whose window the event occurred, and that object
+then responds by announcing its event(s) as described for each kind of
+object in the sections following.  The functions here are analogous to
+the ``main loop'' functions in toolkits such as \textit{Motif}.  The X
+events that are enabled for SLIK objects are: exposure, enter notify,
+leave notify, button press, button release, motion notify, and key
+press.
+
+\subsection{Functions for handling X events}
+
+\function{process-events\index{process-events}}{}
+{handles X events, notifying objects in whose windows the events
+occur, when need be.  The object must be registered in the SLIK
+internal X event table.  This registration is done automatically by
+the \tp{make-} functions described in chapter \ref{sec:objects}.
+Event processing continues until an \emph{Exit} button is pressed, or
+some other X event processing action function returns something other
+than \tp{nil} (see chapter \ref{sec:newobjs}).  Then
+\tp{process-events} returns \tp{t}.}
+
+\function{terminate\index{terminate}}{}
+{closes the display currently opened by your application, erases the
+association between windows and their SLIK objects, and returns the
+string \tp{"SLIK display connection closed"}.  This is the complement
+of the \tp{initialize} function called at the beginning of your
+application.}
+
+SLIK also provides support for ``nested event loops''.  Sometimes it
+is necessary to create a temporary interaction device that collects
+information from the user before allowing any further interaction to
+proceed.  While this information is being entered, other X events in
+application windows (except for X exposure events) will be discarded.
+Exposure events are handled differently so that the application
+windows stay refreshed as they are moved or uncovered.
+
+SLIK includes objects that are examples of this kind of interaction,
+described in more detail in section \ref{sec:dialog}.  Examples
+include a message box that waits for acknowledgement from the user,
+and a confirmation box that queries the user to confirm or cancel some
+requested operation.  You can also create your own such dialog boxes
+by using the following functions.
+
+\function{push-event-level\index{push-event-level}}{}
+{saves the current X event processing context and creates a new
+temporary X event processing context.  All SLIK objects created
+following the execution of this function will be included in the new
+temporary event processing.  From this point any X events occurring in
+windows in any other context in the application (including the
+formerly current one) will be discarded, except for exposure events.}
+
+\function{pop-event-level\index{pop-event-level}}{}
+{discards the current X event processing context and restores the last
+saved X event processing context.  Previously inactive windows from
+that saved context will be able to receive X events once more.
+Returns \tp{nil}.}
+
+The \tp{push-event-level} and \tp{pop-event-level} functions are
+analogous to the functions \tp{initialize} and \tp{terminate}.  If you
+wish to create some windows in a nested context, your program should
+call \tp{push-event-level}, then create the SLIK objects, then call
+\tp{process-events}.  When the \tp{process-events} loop exits, you
+would destroy the objects you created, then call \tp{pop-event-level}.
+This would usually be done from an action function that responds to an
+X event at an outer event processing level, and thus would return the
+application to the \tp{process-events} loop at that level.  You can
+create a new event level from within an already nested event level.
+There is no built-in limit to the depth of nesting.
+
+It is possible in some cases to lose or drop X events, particularly
+\tp{button-release} events, if for example, a \tp{button-press} event
+results in a call to \tp{push-event-level} or one of the SLIK standard
+dialog boxes.  In such a case, the application code must anticipate
+that this might happen and take corrective action following the return
+from the dialog box events.  For example, a momentary button will
+remain ``on'' because the \tp{button-release} event was dismissed when
+the dialog box was created.  The program must then explicitly turn the
+button ``off'' when the call to the dialog box function returns.
+
+It is important to note that the objects you create must include an
+``Exit button'' so that the \tp{process-events} loop can exit.  It
+need not necessarily be labeled ``Exit'', of course.  An alternative
+method would be to create a new type of SLIK object (see chapter
+\ref{sec:newobjs}) and provide an event processing method that returns
+\tp{t} so that the event loop will terminate.
+
+\subsection{Background processing and X event look-ahead}
+
+SLIK provides for queueing and processing background functions, i.e.,
+an application can get useful work done while waiting for user input.
+Functions applicable to this are:
+
+\function{enqueue-bg-event\index{enqueue-bg-event}}{event}
+{adds event to the background processing queue.}
+
+\function{dequeue-bg-event\index{dequeue-bg-event}}{compare-func}
+{removes event from the background processing queue.}
+
+In these functions, event is a function,parameter pair, and the event
+dispatcher will call the function with the parameter as an argument.
+This will take place when there are no X events, and the application
+is just waiting for input.  Therefore the function should be short,
+not take much computing time, since it is running on its own.
+
+\index{window exposure}
+SLIK also provides for handling exposure events even for windows that
+are not at the current event processing level, when the application
+uses \tp{push-event-level}.  By default, this is enabled.  It may be
+disabled by setting the SLIK global variable,
+\tp{*active-exposure-enabled*} to \tp{nil}.
+
+\index{look-ahead}
+Finally, it is possible to allow for SLIK X event processing to skip
+over multiple successive X events of the same type from the same
+window, to accelerate motion simulation.  For example, a dial or
+slider being dragged may generate many \tp{motion-notify} X events.
+It may take some time to respond to them all.  If enabled, X event
+look-ahead will skip all the events that are identical in event type
+to the one just processed, until either the queue is empty or the next
+event is a different type or in a different window.
+
+Look-ahead processing may be enabled or disabled for each individual
+instance of a SLIK object, and each event type, by setting the
+\tp{look-ahead} slot to an event type keyword or a list of keywords.
+The default in general is that no look-ahead is enabled.  For dials
+and sliders, however, the \tp{:motion-notify} event is enabled for
+look-ahead.
+
+\section{Events for inter-object communication} \label{sec:events}
+
+This section describes the functions and objects that support
+\emph{events}, components of abstract behavioral types (ABT), used in
+SLIK and available to your application as well.  Events are used by
+SLIK user interface objects to allow your program to respond to user
+actions.  When you want your program to respond to an event
+announcement (by a SLIK widget, or your own object with an event
+interface), you use the function \tp{add-notify} to register the
+action you want to happen with the event that should trigger it.  When
+the program should no longer respond to that event, your program
+should call the function \tp{remove-notify} for the same event.
+
+Events in SLIK are \emph{not} X windows events, but a separate
+mechanism that provides interaction in general among different
+objects, analogous to X events but more general.
+
+It is possible that in your program there will be many different
+objects that respond to different events as well as announcing events
+of their own.  It is possible for the same object to respond to many
+events, by calling \tp{add-notify} for those different events.  It is
+also possible for many objects to respond to the same event, as there
+may be multiple calls to \tp{add-notify} for that event.  It is very
+important to keep in mind that the order of event announcement actions
+is not in any way guaranteed by the SLIK toolkit code.  Your program
+must not depend on the order of action functions being called by an
+event announcement.  If the order of some set of operations is
+important, they should all be performed in a single action function,
+or there should be separate events for different parts of the process.
+
+The following functions are provided in the \tp{events} package:
+
+\function{make-event\index{make-event}}{}
+{returns an instance of an \tp{event} with no clients registered.
+Used to initialize an event property or slot of an object in your
+application.  Once the event property is initialized other objects may
+register interest in the event by using the \tp{add-notify} function.}
+
+\function{add-notify\index{add-notify}}{party event action}
+{if \emph{party} is not already represented in the notification list
+for \emph{event}, adds it.  Otherwise just updates the action
+function.  \emph{Event} must be a place designation suitable for
+\tp{setf}, and it must contain an event object.  \emph{Action} is a
+function object, or a symbol naming a function object, that takes a
+parameter list appropriate to the specified event.}
+
+The first two parameters passed to the action function are always the
+party to be notified and the announcing object (not the event but the
+object itself).  The additional parameters, if any, depend on the
+particular event being announced, and are specified for each event in
+the following section.  The announcer calls your action function, so
+you must provide an action function that accepts precisely those
+arguments described by the documentation for the particular event.
+
+Examples may be found in the tutorial in chapter \ref{sec:tutorial}.
+
+\function{remove-notify\index{remove-notify}}{party event}
+{removes the entry for \emph{party} in \emph{event}.}
+
+\function{announce\index{announce}}{announcer event \&rest other-pars}
+{announces \emph{event}, i.e., applies the action function of each
+entry in \emph{event} to the listener object of each entry, with
+\emph{announcer} and \emph{other-pars} as additional arguments.}
+
+The \emph{other-pars} may be a new value of some attribute of the
+announcer, nothing, or other arguments, depending on the event that is
+being announced.
+
+The \tp{announce} function always returns \tp{nil}.
+
+\section{Collections (sets with behavior)} \label{sec:collections}
+
+The \tp{collections}\footnote{Since the term \tp{set} is already in
+use in Common LISP, we use the term \tp{collection} instead.} package
+implements an ABT consisting of the mathematical notion of an ordered
+\emph{set} along with insertion and deletion operations and
+corresponding \emph{inserted} and \emph{deleted} events.  Sets and
+relations as ABTs are further discussed in \cite{sullivan92}.
+
+In the following, some of the functions take a test function as a
+parameter.  This function follows the same rules as described in
+\cite[pp. 388--391]{steele90} for test functions.  The default for the
+test function is \tp{\#'equal}.  However, the use of a key function is
+not supported.  A \tp{collection} supports the following
+operations:\footnote{The two symbols described here, \tp{inserted} and
+\tp{deleted}, are in the \tp{collections} package, and are different
+from the symbols of the same name in the \tp{slik} package, described
+on page \pageref{sec:scrolling-list}.}
+
+\function{make-collection\index{make-collection}}
+{\&optional initial-contents}
+{returns a collection instance with initial contents as specified, or
+an empty collection if \emph{initial-contents} is nil or omitted.  If
+provided, \emph{initial-contents} must be a list, but is otherwise
+unrestricted.}
+
+\function{insert-element\index{insert-element}}{el coll \&key test}
+{inserts object \emph{el} into collection \emph{coll} at the
+\emph{end} of the list, if it is not already a member as specified by
+\emph{test}.  If \emph{el} is already in \emph{coll}, no action is
+taken.  Returns \tp{nil}.}
+
+\function{delete-element\index{delete-element}}{el coll \&key test}
+{deletes object \emph{el} from collection \emph{coll} if it is present
+according to \emph{test}.  The order of the remaining elements is
+preserved.  Returns \tp{nil}.}
+
+\function{collection-size\index{collection-size}}{coll}
+{returns the number of elements in collection \emph{coll}.}
+
+\function{collection-member\index{collection-member}}
+{el coll \&key test}
+{applies \emph{test}, which takes two parameters, to \emph{el} and
+each element in \emph{coll}, in order, and returns the result of
+\emph{test} the first time it returns other than \tp{nil}, or if no
+element passes the test, returns \tp{nil}.  The default test is
+\tp{\#'equal}, in which case \tp{collection-member} returns \tp{t} if
+\emph{el} is a member of collection \emph{coll}.}
+
+\function{elements\index{elements}}{coll}
+{returns a list of all the elements in collection \emph{coll}.}
+
+Collections provide (announce) the following events:
+
+\event{inserted\index{inserted}}{el}
+{announced when object \emph{el} is inserted into the collection.}
+
+\event{deleted\index{deleted}}{el}
+{announced when object \emph{el} is deleted from the collection.}
+
+The collections package also includes the \tp{relation} data type.  A
+relation is a collection whose elements are ordered pairs of objects
+(two element lists).  The relation can then produce the objects that
+pair with a given object.  Relations support the same operations and
+events as collections, with the constraint that each of the items in
+\emph{initial-contents} (if provided) and each object inserted later
+must be a two element list.  In addition to the operations supported
+by a collection, relations provide the following:
+
+\function{make-relation\index{make-relation}}
+{\&optional initial-contents}
+{returns a new instance of a \tp{relation} with contents as specified,
+or an empty relation if \emph{initial-contents} is \tp{nil} or
+omitted.}
+
+\function{projection\index{projection}}{el rel \&key test}
+{returns the image or projection of element \emph{el} under the
+relation \emph{rel}, a list of all second elements from the pairs in
+which \emph{el} satisfies \emph{test} applied to it and the first
+element.  \emph{Test} defaults to \tp{\#'equal}.  The list of second
+elements is returned, not the list of pairs or relation entries.  If
+no match is found, the function returns \tp{nil}.}
+
+\function{inverse-relation\index{inverse-relation}}{rel}
+{returns the inverse relation of \emph{rel}.}
+
+\chapter{Object reference guide} \label{sec:objects}
+
+The following are the objects provided in the SLIK tool kit.  You use
+these to make your application user interface, which should consist of
+one or more control panels, with one or more controls in each of them,
+and possibly one or more pictures.  A control panel can contain other
+control panels as well as controls.
+
+Each object class whose instances you create in your application code
+has a \tp{make-} function, e.g., \tp{make-dial}.  These
+functions are described in the sections for the particular object
+classes, below.  In addition, once created, objects have three kinds
+of external interfaces (i.e., interfaces that are exported from the
+SLIK package).  They are: attributes, events, and methods or
+functions.
+
+For each object there are one or more methods for the generic function
+\tp{destroy}\index{destroy}.  Your program must call the \tp{destroy}
+function for each object instance when it is no longer in use.  This
+unmaps it from the screen and frees X resources associated with it.
+
+An attribute represents some aspect of the state of an instance of an
+object.  It may be set at the time an instance is created, by
+providing a keyword parameter to the appropriate \tp{make-}
+function, it may be created automatically by the initialization
+procedure for that class of object, or it may have a default value.
+In the following descriptions, ``required'' means that the
+corresponding parameter \emph{must} be supplied to the \tp{make-}
+function.  Otherwise, the attribute may be set when the object is
+created, by providing keyword parameters to the \tp{make-}
+function.
+
+On the other hand, some of the attributes of a class can not be
+initialized by providing such parameters when you create an object
+that instantiates a subclass.  These classes have initialization
+methods that shadow the parameters you may provide with special
+initialization parameters.  In these cases, it is not an error to
+provide these parameters, but they will be ignored.  For each object
+that does this we mention it in that object's section below.
+
+Once the object is created, an attribute may be \emph{init-only,
+read-only}, or it may be set.  An \emph{init-only} attribute may not
+be read or changed once the object is created.  An attribute that is
+\emph{read-only} may be initialized, and may be read using the
+attribute name as a reader function, but may not be set after the
+object is created.  An attribute that is neither \emph{init-only} nor
+\emph{read-only} may be read using the attribute name as a reader
+function, and \emph{changed} at any time by using \tp{setf} with
+the reader function.
+
+When an attribute is changed using \tp{setf}, and the attribute
+value affects the appearance of the object on the screen, the object's
+appearance is updated immediately.  You should not need to use the
+\tp{process-events} function for this.
+
+Some attribute values are themselves entities that may be altered in
+place, though the (altered) entity remains as the value of that
+attribute.  For example, a CLX window that is an attribute of a
+picture may be the object of a drawing operation, thus the contents of
+the window change, but that window remains as the window attribute of
+the picture.
+
+The following sections list all the accessible attributes of each type
+of SLIK object.  Attributes that are generic to a class of SLIK
+objects are described once for the base class; they are not repeated
+in the subsections describing particular specializations of the base
+class.
+
+In particular, since every SLIK class is a subclass of the
+\textit{frame} class, all SLIK classes inherit the properties of the
+frame class.
+
+In addition to attributes, SLIK objects have \emph{events}, which
+represent their potential action on the external world by implicit
+invocation.  You can make objects interact by providing an action
+function and an audience for an event.  When the object announces the
+event, the corresponding action function is called for each of the
+objects in the audience of the event.  Events belong to individual
+objects and are parts of the external interface of those objects.  An
+object that requires notification of an event ``joins'' the audience
+for \emph{each specific object}, not for a global event object.
+
+In some applications there may be several objects to be notified of an
+event.  Thus there may be many audience-action pairs registered with
+the event.  In this case, each action function is executed in some
+arbitrary order.  If your application requires that some order of
+execution should be imposed, you need a more complex intermediary, a
+mediator, or you need to provide several events, announced in
+sequence, so that all the actions of one happen before all the actions
+of the other.
+
+\section{Frame}
+
+All the entities in SLIK are specializations of the \textit{frame}.  A
+frame\index{frame} contains the basic CLX attributes that all SLIK
+objects need.  We list here only those attributes that are exported by
+all SLIK objects.  The descriptions in the following sections, of each
+of the specialized objects, include additional exported attributes for
+each kind of object.
+
+You can use a frame as a ``top level'' control panel in which other
+frames (controls) are placed.  Frames can have their X windows placed
+within (parented to) other frames' windows, to make more complex
+``control panels''.  Such panels might also include text labels or
+other information.  For display of application graphics and images,
+SLIK provides the \emph{picture}, a specialization of the frame,
+described in section \ref{sec:picture}.
+
+The attributes \emph{bg-color, fg-color, font, border-width}, and
+\emph{border-color} may be read (and set) by application code so that
+other SLIK objects may be created with the same attribute values as an
+existing one.  This is especially useful when, for example, one is
+creating an object whose window is to be placed within the window of a
+parent object.
+
+The choice of foreground and background color, border color and border
+style can drastically affect the appearance of the display.  The
+default values are chosen to allow for a slight 3-D look and feel of
+the buttons and textlines.  For a more ``flat'' look, set the
+background to black and the foreground to white, with border style
+``flat'' for everything.  The default values give a more
+``Motif''-like appearance.
+
+\attpar{frames}
+
+\attrib{width\index{width}}
+{specifies the horizontal size in pixels in the frame.  Type:
+\tp{clx:card16}.  Required.  \textit{read-only}}
+
+\attrib{height\index{height}}
+{specifies the vertical size in pixels in the frame.  Type:
+\tp{clx:card16}.  Required.  \textit{read-only}}
+
+\attrib{title\index{title}}
+{specifies what goes in the title bar if your window manager is set to
+display it.  Type: \tp{string}.  Default: \tp{"SLIK frame"}.}
+
+The foreground color and background color attributes described next
+may be updated after the object is created.  When these are updated,
+the object is redrawn using the new color in each case, except for the
+content of a \emph{picture} (section \ref{sec:picture}), which is
+entirely under the control of application code instead.
+
+\attrib{bg-color\index{bg-color}}
+{the window background color.  Type: \tp{symbol} (see section
+\ref{sec:clx-support}). Default: \tp{'default-bg}.}
+
+\attrib{fg-color\index{fg-color}}
+{the window foreground color.  Type: \tp{symbol}.  Default:
+\tp{'default-fg}.}
+
+\attrib{font\index{font}}
+{a font for writing text in the frame.  It can be omitted, in which
+case a default font is used.  \tp{(font f)} returns (and with
+\tp{setf} sets) the font in use by frame \tp{f}.  Since each
+frame may have its own font, different controls within a control panel
+may have different fonts.  Type: \tp{clx:font}, \emph{not}
+\tp{symbol}.  Default: the value of \tp{*default-font*}.}
+
+\attrib{border-width\index{border-width}}
+{width in pixels of a box around the perimeter of the control.
+\tp{(border-width f)} returns, and with \tp{setf} sets, the
+\tp{border-width} attribute of frame \tp{f}.  When the border
+width is changed, the frame is refreshed with the new border
+thickness.  Drawing of the border may be turned off by setting the
+border-width to \tp{0}.  Default: \tp{1}.  Type:
+\tp{clx:card8}.}
+
+\attrib{border-color\index{border-color}}
+{color of the border.  When set (with \tp{setf}) the border is
+redrawn in the new color, and the frame is refreshed.  Type:
+\tp{symbol}.  Default: \tp{'sl:white}.}
+
+\attrib{border-style\index{border-style}}
+{border-style is a keyword, :flat for the original widget border
+style, :raised for a sort of raised button look, or :lowered for an
+indented look.  Default: the value of \tp{*default-border-style*}.}
+
+\attrib{ulc-x\index{ulc-x}}
+{the pixel x coordinate at which the upper left corner of the window
+of this frame should be placed.  The coordinate is relative to the
+parent window, or the screen, if there is no parent.  Type:
+\tp{clx:card16}.  Default: 0. \textit{init-only}.}
+
+\attrib{ulc-y\index{ulc-y}}
+{the pixel y coordinate at which the upper left corner of the window
+of this frame should be placed.  The coordinate is relative to the
+parent window, or the screen, if there is no parent.  Type:
+\tp{clx:card16}.  Default: 0. \textit{init-only}.}
+
+\attrib{colormap\index{colormap}}
+{the colormap associated with the window of the frame.  It is usually
+just a copy of the parent's.  Default: parent colormap or screen
+default colormap.}
+
+Note that the colormap entries may each be modified but the colormap
+itself must not be replaced, once the frame is created.
+
+\attrib{parent\index{parent}}
+{a CLX window, specifying a parent or containing window for the window
+of this frame.  If it is omitted, the window for the frame is created
+as a top-level window.}
+
+\attrib{mapped\index{mapped}}
+{a boolean specifying whether the frame's window should be mapped
+after it is created.  The default is ``true'' (or \tp{t}).  If it is
+\tp{nil}, the window will be created but not mapped to the screen.}
+
+\attrib{visual\index{visual}}
+{a CLX visual to be used in the call to \tp{clx:create-window}, or the
+keyword \tp{:copy}, the default.}
+
+\attrib{window\index{window}}
+{the CLX window that is used to display the information and pictorial
+rendition of the object.  It is created automatically when a frame is
+created, and may be drawn into, but not replaced.  \tp{(window f)}
+returns the \tp{window} attribute of frame \tp{f}, and it may be
+used as the ``drawable'' argument for CLX operations, or the
+\tp{parent} attribute for creation of other SLIK objects whose
+windows should appear in this window.}
+
+\attrib{look-ahead\index{look-ahead}}
+{when this slot's value is not nil, the event handler will look ahead
+in the event queue to remove duplicate events of the specified types.
+Default: \tp{nil}.}
+
+Application code does not usually draw into the window of a SLIK
+object.  The usual use of the \tp{window} attribute of a SLIK object
+is as the \tp{parent} attribute for SLIK objects that are ``contained
+in'' this object.  Two common exceptions occur: when creating a
+control panel with component objects, you may add labeling or other
+text or decorations around or adjacent to the components in the
+control panel frame, and when the application itself generates graphic
+displays, using the SLIK \tp{picture}, a frame with additional
+attributes and capabilities that provide for application graphics and
+image display and interaction, you may draw in the picture pixmap or
+directly in the window, depending on the application's needs to manage
+``foreground'' and ``background'' information.
+
+When your application \emph{does} draw directly into the window of a
+SLIK frame, you should provide an action function for the exposure
+event for that frame, which should then refresh the drawing (text,
+decorations, picture data).  The contents of a picture pixmap will be
+refreshed to the window automatically, but anything you draw directly
+in the window must be done by your own code.
+
+\annpar{frames} \label{pg:frameann}
+
+\event{exposure\index{exposure}}{x y width height count}
+{announced when a part of the frame is exposed, e.g., by another
+window having been moved or deleted.  The \emph{count} parameter
+refers to the number of exposure events to follow.}
+
+All SLIK objects except the \tp{picture} (section \ref{sec:picture})
+handle \tp{:exposure} X events automatically by redrawing their
+contents in the entire window, including the exposed parts.  For
+frames this simply means drawing the border.  If you create a control
+panel (frame) in which your code writes text or other graphics that is
+not already built in to the objects, e.g., a logo, you must provide an
+action function for the exposure event announced by the frame.
+
+For pictures, since the pixmap is the picture window's background, it
+will be redisplayed, but to restore any foreground contents other than
+the border and pickable objects in the picture, you must provide your
+own code to refresh the contents of newly exposed portions of the
+window associated with the picture.
+
+\mfpar{frames}
+
+\label{pg:makeframe}
+\function{make-frame\index{make-frame}}{width height \&rest
+other-initargs}
+{returns an instance of a frame with the specified width, height, and
+other attributes.}
+
+\method{destroy\index{destroy}}{(f frame)}
+{releases the resources owned by the object, e.g., deallocates the
+border graphic context, destroys the window, and unregisters the
+object.  This helps recover X resources and other resources.  The
+\tp{destroy} methods provided for standard SLIK objects that have
+component parts will recursively destroy the components before
+releasing the resources for the top level window.  Therefore you do
+not have to be concerned with the internal structure of a compound
+widget such as a dialbox.}
+
+\function{erase\index{erase}\label{pg:erase}}{f}
+{sets the entire window of frame \tp{f} to the background color,
+or in the case of a \tp{picture}, to the background pixmap.  This
+happens automatically on X window exposure events.}
+
+\function{draw-border\index{draw-border}}{f}
+{draws the border of frame \tp{f} in the current border color and
+width, with the current border style.}
+
+All the objects described in the remainder of this chapter are
+subclasses of the frame class and therefore have the above attributes.
+You create the various types of objects indicated in the following
+subsections by using the corresponding \tp{make-} function.  These
+functions all take keyword parameters for the attributes that are set
+(or can be set) at the time you create the corresponding object.  This
+includes the frame attributes above.  Therefore, the \textit{\&rest
+other-initargs} parameter is an abbreviation for \textit{\&key title
+bg-color fg-color font border-width border-color border-style ulc-x
+ulc-y colormap parent mapped visual \&allow-other-keys}.  The other
+keys are the additional attributes of the more specialized SLIK
+objects described in the following sections.
+
+Although every SLIK object has the attributes described above for
+\tp{frame}, in some cases you do not set these attributes
+directly.  For example, a dial always has a square window, sized to
+fit the radius of the dial.  In these cases it is not an error to
+provide the keyword parameters (in this case, width and height) to (in
+this example) the \tp{make-dial} function, but such parameters
+will be ignored.
+
+Sometimes you will want to create a control to be part of a larger
+frame, but you will not know the size of the control, if it is
+computed by the constructor function from other input parameters.  In
+this case, you can create the control with \tp{:mapped nil}, find
+out its size from the accessor functions, \tp{width} and
+\tp{height}.  After creating the containing frame you reparent the
+control, using \tp{clx:reparent-window} and map it using
+\tp{clx:map-window} (and \tp{clx:map-subwindows} if the
+control has parts that are also windows).  This is also described
+below and in section~\ref{sec:contpan}.
+
+\section{Simple controls}
+
+A control is an object which may respond to input from user actions
+such as mouse and keyboard usage, in the style of direct manipulation.
+The appearance of the control may change (e.g., a dial may have an
+arrow that rotates, or a button may change color when you click on
+it).  The name ``control'' is used to conjure images of large control
+panels in a jet cockpit or a recording studio.  You create controls
+with the corresponding \tp{make-} functions.  Some controls are
+composite, e.g., a dialbox combines a dial and a textline in a single
+unit.  Simple controls are controls that are not made up by having
+other controls as ``contained'' objects.
+
+Controls can be inserted into larger control panels by passing the
+window of the larger control panel as the \tp{:parent} parameter
+to the \tp{make-} function, or by using window mapping as described
+above.
+
+The \tp{make-} functions for the various types of controls take
+keyword parameters for all the attributes described that can be set at
+creation of the control.
+
+\subsection{Dial} \label{sec:dials}
+
+A dial\index{dial} is intended to allow display and manipulation of
+angular values, in a range from 0.0 to 359.9 degrees.  A dial is
+rendered as a circle containing a centrally pivoted needle pointing in
+the direction indicated by its current value, where vertical (straight
+up) on the screen is 0 and values increase in a clockwise direction.
+The needle may be grabbed with the mouse and pivoted to point in any
+direction.
+
+When the user drags the dial needle with the left button, the pointer
+moves on the screen, and the \tp{value-changed} event is
+announced.  This continues until the button is released.  If the
+button is up, and the user places the screen pointer and then presses
+the left button, the dial pointer moves (jumps) to the new angle
+corresponding to the screen pointer location (and the
+\tp{value-changed} event is announced).
+
+\attpar{dials}
+
+\attrib{angle\index{angle}}
+{angle in degrees at which the dial is currently set.  Type:
+\tp{single-float}.  Default: 0.0}
+
+Angles are specified in degrees, so, to use trigonometric functions
+your code needs to convert the values to radians.  Note that in the
+dialbox (see section \ref{sec:dialbox}) the display and typed input
+are also in degrees since that is most familiar to users.
+
+\annpar{dials}
+
+\event{value-changed\index{value-changed}}{angle}
+{announced when the \tp{angle} attribute changes.}
+
+\mfpar{dials}
+
+\function{make-dial\index{make-dial}}
+{radius \&rest other-initargs}
+{returns a new instance of a dial, with radius, angle and other
+parameters as specified.  \emph{Radius} is in pixels and is of type
+\tp{clx:card16}.  The dial window is square; its size (length of side)
+is determined by the dial radius, r, according to: $s = 2 (r + 5)$ .
+If you provide keyword values for the width or height parameters, the
+values will be ignored.}
+
+\subsection{Slider}
+
+A slider\index{slider} is intended to allow display and manipulation
+of linear values in a limited range specified upon instantiation.  A
+slider is rendered to appear as a sliding panel switch, and may be
+configured to slide horizontally or vertically.  It has a handle which
+may be dragged, and a slot, within which the handle glides.  Sliders
+handle real valued numbers (\tp{single-floats}).
+
+Sliders have the same mode for direct manipulation that dials have.
+With the left button down, the user may drag the slider handle and the
+\tp{value-changed} event is announced repeatedly as the slider moves.
+Clicking on a new location for the handle will make the handle jump to
+that location, the slider value will be set to the corresponding value
+and the \tp{value-changed} event will be announced each time.
+
+\attpar{sliders}
+
+\attrib{setting\index{setting}}
+{the value representing the slider's current setting (user defined
+units).  Type: \tp{single-float}.  Range: \(minimum <=
+setting <= maximum\).  Default: \((minimum + maximum) / 2\).}
+
+\attrib{minimum\index{minimum}}
+{the lowest value to which the slider can be set (the knob will be
+positioned to the extreme left for horizontal sliders and the bottom
+for vertical sliders).  Type: \tp{single-float}.  Required.
+\textit{read-only}.}
+
+\attrib{maximum\index{maximum}}
+{the highest value to which the slider can be set (the knob will be
+positioned to the extreme right for horiztonal sliders, top for
+vertical sliders).  Type: \tp{single-float}.  Required.
+\textit{read-only}.}
+
+\attrib{orient\index{orient}}
+{slider orientation.  Type: either \tp{:vertical} or \tp{:horizontal}.
+Default: \tp{:horizontal}.  \textit{init-only}.}
+
+\attrib{knob-scale\index{knob-scale}}
+{ratio of the knob size (knob width for horizontal sliders,
+knob-height for vertical sliders) to the slot size (similarly
+defined).  Type: \tp{single-float}.
+Range: \(0.0 < \textmd{knob-scale} <= 1.0\).  Default: 0.03.}
+
+\annpar{sliders}
+
+\event{value-changed\index{value-changed}}{setting}
+{announced when the \tp{setting} attribute changes, similarly to
+the dial.}
+
+\mfpar{sliders}
+
+\function{make-slider\index{make-slider}}
+{width height min max \&rest other-initargs}
+{returns a new instance of a slider with the specified parameters.
+The \emph{width} and \emph{height} parameters are the width and height
+of the slider frame.  The \emph{min} and \emph{max} parameters are
+used to set the \tp{minimum} and \tp{maximum} attributes respectively,
+and \emph{min} must be less than \emph{max}.  The other parameters are
+specified with keywords.}
+
+\subsection{Readout}
+
+A readout is a box containing a number or text for display only.  It
+does not respond to user interaction but may be updated from a
+program, i.e., by setting the \tp{info} attribute.  When you create
+the readout you must specify the width and height.  You may also
+specify a font to be used.  The vertical position of the data in the
+readout is centered based on the font used.  If you do not specify a
+font, the default font is used.
+
+You may optionally provide a label, some text to appear to the left of
+the displayed data.
+
+If you provide initial data for the \tp{info} attribute, it is used to
+determine the horizontal starting point (the text is centered).  If
+you omit the \tp{info} initial value, the text will be written
+starting 10 pixels from the left.  If a label is provided, it will
+appear first, and the text data will be written after the label.  If
+both the initial \tp{info} and a label are initially provided, the
+combined text of label and \tp{info} are centered.  Once the initial
+start point for \tp{info} is set, it cannot be changed, so updated
+text may not be centered, even if the original text was.
+
+Other attributes of a SLIK frame may be specified as well, including
+the foreground color, the background color, the border width and
+color, and the text to go in the title bar if the window is a
+top-level window.  All these are changeable using \tp{setf}.
+
+The default border style for readouts is \tp{:flat} to indicate that
+the contents are not user-alterable.
+
+\attpar{readouts}
+
+\attrib{label\index{label}}
+{an optional text label to appear with the data.  Type:
+\tp{string}. Default: the empty string.  \textit{init-only}}
+
+\attrib{info\index{info}}
+{the data to display in the readout.  Type: \tp{string}, but you
+may alternatively supply an integer, or a floating point number to
+\tp{setf} when updating the value.  The value you supply is
+converted to a string using the Common LISP \tp{format \~{}A}
+directive.  Default: the empty string.}
+
+NOTE: If the \emph{info} parameter is supplied as an initialization
+parameter to \tp{make-readout}, it must be a string.  This is only
+useful for having the location of the displayed text placed
+aesthetically reasonably.  Thereafter it can be set to any string or
+number.  If an initial string is provided, its length is used to
+determine where subsequent values will be written, i.e., the starting
+point is chosen to center the initial text, and fixed thereafter.
+
+\mfpar{readouts}
+
+\function{make-readout\index{make-readout}}
+{width height \&rest other-initargs}
+{returns a readout with the specified attributes.}
+
+\subsection{Textline} \label{sec:textlines}
+
+A textline is a readout that allows text input for what is typically a
+short answer from the user, often a simple number or name.  The text
+displayed may be changed either programmatically or by typing directly
+in the textline's display area.  The text cursor is displayed as a
+vertical line at the insertion point.  Text may be arbitrarily long,
+but only the beginning of the text will be displayed.  The textline
+does not scroll horizontally and handles only a single line of text.
+
+The user may delete characters before the point of the input cursor,
+or add characters at the end of the current text string (the location
+of the text cursor), or may press the \tp{<RETURN>} key, signalling
+that the text is complete.  The textline only responds to keyboard
+input when the pointer is positioned \emph{in the textline window}.
+
+The user may type any character as input to a textline, provided the
+operating system or Common LISP implementation or local window manager
+does not intercept it and take some special action.  If the character
+is a ``graphic'' character (see Steele \cite[page 376]{steele90}) it
+is added to the current \emph{info} string.  If the input character is
+one of the semi-standard characters, \verb|#\Backspace| or
+\verb|#\Rubout|, the last graphic character entered is deleted and the
+cursor is moved back one position.  If the semi-standard character
+\verb|#\Return| is input, the textline announces the event
+\emph{new-info} (see below).  If the non-standard keypad \tp{Enter}
+key is input, the textline behaves as if a \verb|#\Return| was input.
+Any other character input is ignored.
+
+When characters are entered other than \verb|#\Return| or \tp{Enter},
+the textline border changes to the color specified by
+\tp{volatile-color} and the width specified by \tp{volatile-width}.
+When the \verb|#\Return| or \tp{Enter} keys are pressed the color
+returns to the normal border color and thickness.
+
+If the user presses mouse button 2 while the pointer is in the
+textline, the textline contents are erased, and the border changes to
+the volatile settings.  This is easier than using the backspace or
+delete keys to erase unwanted input character by character if the user
+wants to start over with fresh input.
+
+Textlines are a specialization of readouts, providing input as well as
+output, so the attributes and properties of readouts also apply to
+textlines.  In addition, the textline has an event, \tp{new-info}, and
+of course its own \tp{make-} function.  The default border style for
+textlines is \tp{:lowered}, unless the overall default is \tp{:flat},
+in which case the textline also uses a \tp{:flat} border style.
+
+A textline may be specified to accept only text that is a valid
+integer or floating point number.  In this case, when the
+\verb|#\Return| key is pressed, the text is checked for validity and
+compared to upper and lower bounds (which \emph{must} be provided if
+the restriction to numbers has been specified.  If the input is not
+both valid and within range, a message box is displayed saying
+``Please enter a number between $x$ and $y$'', where $x$ and $y$ are
+the lower and upper limits the programmer specified.
+
+When information is being typed into a textline, the border color and
+width change to reflect that the text being typed in is volatile, and
+is not yet stored anywhere.  Pressing the RETURN key causes the border
+color and width to return to normal.  This behavior can be disabled if
+desired, so that the border color and width do not change in
+appearance when text is being typed in.  This is done by providing a
+value of \tp{nil} for volatile-color.
+
+\attpar{Textlines}
+
+\attrib{numeric\index{numeric}}
+{a boolean quantity, true if the textline should accept only numeric
+input and not other text.  If \emph{numeric} is \tp{t}, the input
+checking is done only when the user presses the RETURN key.  Type:
+\tp{(member '(t nil))}.  Default: \tp{nil}, meaning any text
+is allowed.}
+
+\attrib{lower-limit\index{lower-limit}}
+{the lowest numeric value accepted if numeric input is required.
+Type: \tp{(member integer float)}.  Required if numeric is
+\tp{t}.}
+
+\attrib{upper-limit\index{upper-limit}}
+{the highest numeric value accepted if numeric input is required.
+Type: \tp{(member integer float)}.  Required if numeric is
+\tp{t}.}
+
+\attrib{volatile-color\index{volatile-color}}
+{the color of the textline's border when text contained within it is
+volatile and is not stored anywhere else in the system (eg: when it is
+being typed in or modified).  If \tp{nil} is supplied, then the
+border does not change color (or width) when the text is volatile.
+Type: \tp{symbol}, one of the SLIK colors. Default: \tp{red}.}
+
+\attrib{volatile-width\index{volatile-width}}
+{the width of the textline's border when text contained within it is
+volatile and is not stored anywhere else in the system (eg: when it is
+being typed in or modified).  Type: \tp{fixnum}.  Default:
+\tp{2}.}
+
+\annpar{textlines}
+
+\event{new-info\index{new-info}}{info}
+{announced when the user presses the RETURN key, indicating acceptance
+of the text in the window.  The \tp{info} parameter is a string, as is
+the \tp{info} attribute of a textline, so if you are expecting numeric
+input, you should convert the text to numeric data yourself.  For
+example, you might use a form such as \tp{(read-from-string~info)}.}
+If you need to restrict or insure the numeric type, you may need to
+use \tp{round} or \tp{coerce}.
+
+\mfpar{textlines}
+
+\function{make-textline\index{make-textline}}
+{width height \&rest other-initargs}
+{returns a new instance of a textline, with parameters as specified.}
+
+\subsection{Textbox}
+
+A textbox is used for the display and editing of several lines of
+text.  Textboxes do not announce events to indicate the user's
+acceptance of the contained text.  The programmer must provide some
+other user interface device for this, typically a pair of buttons, for
+`accept' and `cancel', if this is needed.  SLIK includes a simple
+popup dialog box that provides this (see section \ref{sec:dialog}).
+Each string in the list of strings that is the value of \tp{info} is
+displayed on a different line in the textbox.  There is no provision
+for word wrap, i.e.: if a line is too long the excess characters are
+retained but not displayed.  Vertical scrolling is provided in
+connection with the up-arrow and down-arrow keys for cursor motion.
+Horizontal cursor motion is \emph{not} provided.  The text input
+cursor is always at the end of a line, as in the textline.
+
+\attpar{textboxes}
+
+\attrib{info\index{info}}
+{the text that is displayed in the textbox.  Type: list of strings.
+Default: list of one element, the empty string.  Note that this is
+also the minimum, not \tp{nil}, and if anything other than a list
+of strings is present as the value of \tp{info}, it is an error.}
+
+\annpar{textboxes}
+
+\event{new-info\index{new-info}}{}
+{announced whenever any text is changed, i.e., new characters, delete
+characters, new line, delete line, but not cursor motion.}
+
+\mfpar{textboxes}
+
+\function{make-textbox\index{make-textbox}}
+{width height \&rest other-initargs}
+{returns a new instance of a textbox, with the specified parameters
+and initial text appearing in the textbox window.}
+
+When the textbox appears on the screen, the user may insert characters
+at the end of the current line, indicated by the location of the
+cursor.  Other editing operations are provided as follows:
+
+\begin{description}
+\item[\tp{<RETURN>}] add a blank line following the current line.
+\item[\tp{<NEWLINE>}] same as \tp{<RETURN>}.
+\item[\tp{<ENTER>}] same as \tp{<RETURN>}.
+\item[\tp{<DOWN ARROW>}] move cursor to next line, if any.  Scroll
+up if at the bottom of the box.
+\item[\tp{<UP ARROW>}] move cursor to previous line, if any.
+Scroll down if at the top of the box.
+\item[\tp{<BACKSPACE>}] delete the character at the end of the
+current line.
+\item[\tp{<DELETE>}] same as \tp{<BACKSPACE>}.
+\end{description}
+
+All other control characters are ignored.
+
+It is not intended that this be a full-blown text editor, but a simple
+means for creating short text passages that could be notes or comments
+in an application.
+
+\subsection{Button} \label{sec:buttons}
+
+A button\index{button} is used to represent a potential action, which
+will be taken if a mouse button is pressed, or pressed and released,
+while the pointer is within the button's window.  Buttons can have
+text labels, or can be plain colors.  A button may be a momentary
+button, i.e., it is ``on'' only as long as the user holds the mouse
+button down while the pointer is on the button, or it can be a
+``hold'' button, that goes on when the mouse button is depressed, and
+stays on when the mouse button is released.  The ``hold'' button then
+goes off when the mouse button is depressed again, and stays off when
+the mouse button is released.  You specify which way the button works
+with the \tp{button-type} attribute, set when the button is
+created (using \tp{make-button}).
+
+The appearance of the button depends on the border style.  For the
+button style \tp{:flat}, when a button is ``off'', the background is
+the button's background color and the text, if any, is written in the
+button's foreground color.  When the button is ``on'', the colors are
+reversed.  If the border style is not \tp{:flat}, the label is always
+written in the foreground color, and only the border changes when the
+button is ``on'' or ``off''.  When ``on'' the border style is
+\tp{:lowered} and when ``off'', the border style is \tp{:raised}.
+
+A button may be turned on by setting the ``on'' attribute, as well as
+by interaction with the mouse and screen pointer.
+
+If your program makes buttons to be inserted into a scrolling-list
+object, each button should be created unmapped, i.e., you should
+include the keyword-value pair \tp{:mapped nil} in the call to
+\tp{make-button}.  You need not provide a parent window parameter,
+since the \tp{insert-button} function reparents the button's
+window to the scrolling-list window anyway.  Scrolling lists are
+described in section \ref{sec:scrolling-list}.  Also described in that
+section is a function, \tp{make-list-button}, that creates a
+suitable button for insertion into a scrolling-list, so that you need
+not be concerned with details.
+
+\attpar{buttons}
+
+\attrib{active\index{active}}
+{the boolean value that says whether the button currently will respond
+to X events.  Default: \tp{t}.  When the button is \emph{inactive},
+i.e., \emph{active} is set to \tp{nil}, it does not respond to X
+events or make announcements.}
+
+\attrib{on\index{on}}
+{the boolean value that says whether the button is \textit{on}.
+Default: \tp{nil}, meaning \textit{off}.}
+
+\attrib{label\index{label}}
+{the text that appears on the button.  The text, if provided, is
+justified in the button window according to the value of the
+\emph{justify} parameter described below.  When updated with
+\tp{setf}, the new label is displayed and justified in accordance
+with the \emph{justify} attribute.  Type: \tp{string}.  Default:
+the empty string.}
+
+\attrib{justify\index{justify}}
+{how label text is justified` on button.  Type:
+\tp{(member~:left~:center~:right)}.  Default: \tp{:center}.
+\emph{init-only}.}
+
+\attrib{button-type\index{button-type}}
+{either \tp{:momentary} for a button that stays on only while the
+mouse button is down, or \tp{:hold} for a button that stays on
+once the mouse button is pressed, and turns off when the mouse button
+is released, and pressed again.  Default: \tp{:hold}.
+\textit{init-only}.}
+
+When you update the \emph{font} attribute, the label is redisplayed in
+the new font, and justified according to the new font and the
+\emph{justify} attribute.
+
+\annpar{buttons}
+
+\event{button-on\index{button-on}}{}
+{announced when the left mouse button is \emph{pressed}, i.e., the
+``on'' attribute is made to be \tp{t}.}
+
+\event{button-off\index{button-off}}{}
+{announced when the left mouse button is \emph{released}, i.e., the
+``on'' attribute is made to be \tp{nil}.}
+
+\event{button-2-on\index{button-2-on}}{}
+{announced when the middle mouse button is \emph{pressed}.  In this
+case, the ``on'' attribute is not changed by the button press action.}
+
+You may choose to connect a button with an action when the button is
+turned on, or when it is turned off, or both.  Note that the above
+announcements are made with respect to the button SLIK object's ``on''
+attribute, not the hardware mouse button.
+
+\mfpar{buttons}
+
+\function{make-button\index{make-button}}
+{width height \&rest other-initargs}
+{returns an instance of a button with the specified parameters.}
+
+\subsection{Icon button}
+
+An icon button has a polygon drawn on it, like an arrow shape, in the
+foreground color, usually instead of text, but if not filled, could be
+in combination with some text.  
+
+\attpar{icon buttons}
+
+\attrib{icon}
+{The pixel coordinates of the icon outline, in a form suitable for
+input to \tp{clx:draw-lines}, i.e., a simple list of alternating x
+and y values for the vertices.}
+
+\attrib{filled}
+{A boolean, specifies whether to fill the icon.}
+
+\mfpar{icon buttons}
+
+\function{make-icon-button\index{make-icon-button}}
+{width height icon \&rest other-initargs}
+{returns an instance of an icon button with the specified parameters.}
+
+There is also a function for making a special type of icon button in
+which the icon is an arrow, and all the caller has to provide is the
+arrow direction.
+
+\function{make-arrow-button\index{make-arrow-button}}
+{width height direction \&rest other-initargs}
+{Returns an arrow button in the specified direction, one of the
+keywords, \tp{:left :right :up} or \tp{:down}.  For the arrow
+button, ``left'' means the viewer's left.}
+
+\subsection{EXIT button}
+
+\index{exit-button} For convenience, SLIK provides a function that
+creates a special kind of button, an ``EXIT'' button, with the
+important property that when it is pressed and released it
+\emph{terminates the event processing loop}.  The EXIT button's
+attributes are the same as any other button, except that by default,
+its title is ``Exit button'', it has a label, ``EXIT'', the background
+color is red, and the button type is \tp{:momentary}.  The only
+required parameters are the width and height.  You may specify the
+label, colors, font, and other parameters if you wish to.  You may
+also optionally specify that a confirmation dialog box (see section
+\ref{sec:dialog}) should appear asking the user to confirm that he/she
+wishes the application to exit.  If the user presses the ``Cancel''
+button in the confirmation box, the exit button will not terminate the
+event processing loop but will allow it to continue.  The default is
+``no confirmation box''.
+
+\attpar{exit buttons}
+
+\attrib{confirm-exit\index{confirm-exit}}
+{either \tp{nil}, or a string or list of strings.  If not
+\tp{nil}, the exit button pops up a confirmation dialog box using
+the string or strings in \tp{confirm-exit}, before terminating the
+SLIK event processing loop.  The action of the exit button depends on
+the result returned by the confirmation dialog box.  If the user
+selects ``Confirm'' the exit button terminates the event loop.  If the
+user selects ``Cancel'', the exit button simply returns \tp{nil}.
+If \emph{confirm-exit} is \tp{nil} the event loop simply
+terminates when the exit button is pressed and released.  Default:
+\tp{nil}.}
+
+\mfpar{exit buttons}
+
+\function{make-exit-button\index{make-exit-button}}
+{width height \&rest other-initargs}
+{returns an instance of an EXIT button with the specified parameters.}
+
+\section{Compound controls} \label{sec:contpan}
+
+A compound control composes controls and pictures into a larger
+display area.  Alignment of inner windows may be achieved at the time
+their controls or pictures are created by specifying the compound
+control window as the parent window, and specifying the \tp{ulc-x}
+and \tp{ulc-y} attributes for the inner windows.  You may make a
+control window appear within a larger window by creating the larger
+SLIK object first and specifying the window of the larger object as
+the parent window of the contained object.
+
+Alternately you may create the control and specify that it is
+\emph{unmapped}.  Then when you create the object whose window will
+contain this control's window, use the \tp{clx:reparent-window}
+function to place it in the new parent window wherever you wish.  Then
+call \tp{clx:map-window} to make the control visible.  If the new
+control is a compound window, i.e., it has subwindows, call
+\tp{clx:map-subwindows} also, in order to make the child windows
+visible, or you can simply call \tp{clx:map-subwindows} on the
+containing or parent window of the new control.
+
+Creating a control unmapped allows you to query its size, using the
+\tp{width} and \tp{height} functions.  Then you can use this
+information to compute the required size of a containing control panel
+and/or the placement of the control within the containing control
+panel.
+
+In addition to making your own control panels composed from SLIK
+objects, SLIK includes some compound controls as well.  They are
+described in the following sections.
+
+\subsection{Menu}
+
+A menu\index{menu} consists of a frame containing a stack of labeled
+buttons arranged vertically.  The user selects one of the buttons by
+pressing the left mouse button while the pointer is on the button.  A
+menu may have a title, and may be kept visible indefinitely, typically
+contained within a larger frame, or it may be popped up for a short
+term residence on the screen, for the user to select one item out of
+the menu's contents, e.g., by mapping and unmapping the menu's window.
+The behavior of the menu items with regard to mouse button presses is
+determined by the \tp{:button-type} attribute, which is described
+in the section on buttons, section \ref{sec:buttons}.
+
+A specialized type of menu, the \emph{radio-menu}\index{radio-menu},
+includes the additional constraint that only one item at a time can be
+selected.  When an item is selected, if another item is already
+selected, the previous item is deselected.  Both the selection and
+deselection are announced.  This is only useful for menus that persist
+and have button type \tp{:hold}.  Of course, a menu with momentary
+buttons does \emph{not} need this constraint.  Selecting an item that
+is already selected in a radio menu will have no effect; the item will
+remain selected.
+
+The size of the frame containing a menu is computed from the font size
+(height), the maximum width text item in the menu, and the number of
+items.  Since it depends on the font used for the text, it is somewhat
+a trial and error process to position menus within control panels.
+
+\attpar{menus}
+
+\attrib{items\index{items}}
+{a list of text strings that appear in the menu buttons, one per
+button.  Set when the menu is created (therefore, required).  Type:
+\tp{list}.  \textit{read-only}}
+
+\annpar{menus}
+
+\event{selected\index{selected}}{selection-number}
+{announced when item is selected from a menu.  The parameter
+\textit{selection-number} is the index of the selected item.  Here and
+following, ``index'' refers to the element number of the item in the
+list of items, with 0 being the first one.}
+
+\event{deselected\index{deselected}}{selection-number}
+{announced when an item is deselected from a menu.  The parameter
+\textit{selection-number} is the index of the deselected item.}
+
+\mfpar{menus}
+
+\function{make-menu\index{make-menu}}
+{items \&rest other-initargs \&key font \&allow-other-keys} {returns
+an instance of \tp{menu} with the specified parameters.  Width and
+height are not required and are ignored if supplied as keyword
+parameters.  They are computed from the items and the font.  Buttons
+are automatically generated for the items.  The button-type may be
+specified in the other-initargs; it may be \tp{:hold} or
+\tp{:momentary}, and \tp{:hold} is the default.}
+
+\method{select-button\index{select-button}}{n (m menu)}
+{selects, i.e., turns on, button number \tp{n} in menu \tp{m}.
+Returns \tp{t}.}
+
+\method{deselect-button\index{deselect-button}}{n (m menu)}
+{deselects, i.e., turns off, button number \tp{n} in menu
+\tp{m}.  Returns \tp{nil}.}
+
+\function{make-radio-menu\index{make-radio-menu}}
+{items \&rest other-initargs}
+{returns an instance of \tp{menu} with the specified parameters
+and with the additional constraint that one and only one item at any
+time is selected.  The buttons are of type \tp{:hold}.  If the
+button-type parameter is supplied, it is ignored.  Unlike the usual
+behavior of the \tp{:hold} button type, a button that is ``on'' is
+not turned off by clicking again on it.}
+
+\subsection{Dialbox} \label{sec:dialbox}
+
+A dialbox\index{dialbox} is a control panel which vertically composes
+a title, a dial and a textline.  The dial and the textline are
+constrained to display equivalent values.  Within the dialbox window,
+the dial appears at the top, then below it is the title string if you
+supplied it as a keyword parameter, then the textline.  If the dialbox
+is a top-level window, the title also appears in the title bar.  The
+textline displays the angle in degrees to a precision of 0.1 degree,
+and interprets typed entry as a value in degrees.  The typed input is
+checked to insure it is a valid number, in the range 0.0 to 359.9
+(integer format is also allowed).  The check is done when the user
+presses the \tp{<RETURN>} key.  If the input contains invalid
+characters or is out of range, a dialog box appears informing the user
+to enter a number between 0.0 and 359.9.  If the input is valid when
+the \tp{<RETURN>} key is pressed, the angle value is updated.
+
+\attpar{dialboxes}
+
+\attrib{radius\index{radius}}
+{the radius of the dial in the dialbox.  Type: \tp{single-float}.
+\textit{init-only}}
+
+\attrib{angle\index{angle}}
+{the angle (in degrees) at which the dial in the dialbox is currently
+set.  Type: \tp{single-float}.}
+
+The angle returned by the expression \tp{(angle~db)} for dialbox
+\tp{db} is in degrees and the displayed value (and the value the
+user types in to the textline in the dialbox) is also in degrees.
+When you use \tp{setf} to update the value, you should provide a
+value in degrees.
+
+The size of the dialbox is just big enough to accomodate the dial and
+the text, with a small margin.  The vertical space for the title and
+textline are allocated depending on the font specified.  The
+horizontal space is the dial width plus 10 pixels.  These values are
+computed when the dialbox is created, and any width and height keyword
+parameters you provide will be ignored.
+
+\annpar{dialboxes}
+
+\event{value-changed\index{value-changed}}{angle}
+{announced whenever the value of the angle in the dialbox changes.}
+
+\mfpar{dialboxes}
+
+\function{make-dialbox\index{make-dialbox}}
+{radius \&rest other-initargs}
+{returns a dialbox with specified parameters.  If you provide a width
+or height parameter, it will be ignored.  You should provide a title
+so the user knows what quantity is being adjusted or controlled.}
+
+\subsection{Sliderbox}
+
+A sliderbox\index{sliderbox} is a control panel similar to a dialbox,
+but containing a slider instead of a dial.  Its orientation
+corresponds to that of its contained slider.  Sliderboxes have
+attributes similar to the sliders they contain, and are constrained to
+keep the numeric value in the textline consistent with the position of
+the slider knob.  The textline is always horizontal though the slider
+may be horizontal or vertical.  The sliderbox label text appears in
+the sliderbox textline as the textline label.  The values for maximum
+and minimum also appear at their respective ends of the slider.
+
+The typed input is checked to insure it is a valid number, in the
+range between minimum and maximum (integer format is allowed).  The
+check is done when the user presses the \tp{<RETURN>} key.  If the
+input contains invalid characters or is out of range, a message box
+appears informing the user to enter a number between the minimum and
+the maximum.  If the input is valid when the \tp{<RETURN>} key is
+pressed, the sliderbox value is updated.
+
+If the user attempts to pull the knob beyond its limits, it will
+remain at the end and the value will not change beyond the value for
+maximum or minimum.
+
+\attpar{sliderboxes}
+
+\attrib{setting\index{setting}}
+{the value representing the slider's current setting (user defined
+units).  Type: \tp{single-float}. Default \tp{(maximum + minimum) /
+2.0}.}
+
+\attrib{minimum\index{minimum}}
+{the lowest value to which the slider can be set (far left or bottom).
+Type: \tp{single-float}.  Required.  \emph{read-only}.}
+
+\attrib{maximum\index{maximum}}
+{the highest value to which the slider can be set (far right or top).
+Type: \tp{single-float}.  Required.  \emph{read-only}.}
+
+\attrib{orient\index{orient}}
+{orientation of the sliderbox.  Type: \tp{:vertical} or
+\tp{:horizontal}.  Default: \tp{:horizontal}.  \textit{init-only}.
+NOTE, this version only supports horizontal sliderboxes: specifying
+\tp{:vertical} will have unpredictable results.}
+
+\attrib{label\index{label}}
+{the string labeling the value displayed in the sliderbox textline.
+\textit{init-only}}
+
+\attrib{display-limits\index{display-limits}}
+{a flag to indicate whether to display the upper and lower limits.
+Type \tp{(member~t~nil)}.  Default: \tp{t}.}
+
+\annpar{sliderboxes}
+
+\event{value-changed\index{value-changed}}{setting}
+{announced when the \tp{setting} attribute changes.}
+
+\mfpar{sliderboxes}
+
+\function{make-sliderbox\index{make-sliderbox}}
+{slider-width slider-height min max digits \&rest other-initargs}
+{returns a new instance of a sliderbox with the indicated parameters.
+The width and height are computed from the slider dimensions and the
+specified (or default) font.  The \emph{digits} parameter is a number
+used to determine how much space to allocate in the textline for
+display of setting values.  See the description of the textline in
+section \ref{sec:textlines} for more information on size and placement
+of text.}
+
+\subsection{Adjustable sliderbox}
+
+An adjustable sliderbox\index{sliderbox, adjustable} is a specialized
+sliderbox where the minimum and maximum values at the ends of the
+sliderbox are textlines, and may thus be edited interactively, like
+the setting textline in the lower center of the sliderbox.  The range
+of the sliderbox is constrained to be positive, and the current
+sliderbox setting is constrained to lie within the minimum and maximum
+values.  If the user attempts to enter a minimum value greater than
+the current setting, the current setting is increased to match the
+minimum value.  If the user attempts to enter a minimum value greater
+than the maximum value minus a prespecified smallest range quantity,
+the minimum value (and the current setting) will be set to the maximum
+value minus the smallest range quantity.  The maximum value textline
+behaves similarly with respect to the current setting and the minimum
+value.
+
+The three textlines contained within an adjustable sliderbox are
+numeric, in the sense that they screen out malformed input and numbers
+that are out of a predefined range.
+
+\attpar{adjustable sliderbox}
+
+The adjustable sliderbox contains the same attributes as the
+sliderbox, with the provision that the \tp{minimum} and
+\tp{maximum} attributes can be modified by the user and also with
+\tp{setf} by application code.  It also contains three additional
+attributes.
+
+\attrib{smallest-range\index{smallest-range}}
+{the smallest range the adjustable sliderbox can have, a
+\tp{single-float}.  The difference between the maximum and minimum
+attributes is constrained to be at least this quantity.  Default:
+1.0. \emph{init-only}}
+
+\attrib{lower-limit\index{lower-limit}}
+{the lowest numeric value accepted by the adjustable sliderbox.
+Default: the initial \tp{minimum} attribute of the adjustable
+sliderbox.  Init-only.}
+
+\attrib{upper-limit\index{upper-limit}}
+{the highest numeric value accepted by the adjustable sliderbox.
+Default: the initial \tp{maximum} attribute of the adjustable
+sliderbox.  Init-only.}
+
+\annpar{adjustable sliderbox}
+
+The adjustable sliderbox announces the same events as the sliderbox,
+plus the following.
+
+\event{minimum-changed\index{minimum-changed}}{setting}
+{announced when the \tp{minimum} attribute changes.}
+
+\event{maximum-changed\index{maximum-changed}}{setting}
+{announced when the \tp{maximum} attribute changes.}
+
+\mfpar{adjustable sliderbox}
+
+\function{make-adjustable-sliderbox\index{make-adjustable-sliderbox}}
+{slider-width slider-height min max digits\\
+	\hspace*{7cm} \&rest other-initargs}
+{returns a new instance of an adjustable sliderbox with the indicated
+parameters.  The width and height are computed from the slider
+dimensions and the specified (or default) font.  The \emph{min} and
+\emph{max} parameters determine the initial contents of the minimum
+and maximum textlines within the adjustable sliderbox.  The
+\emph{digits}\index{digits} parameter is a number used to determine
+how much space to allocate in the textlines for display of setting
+values.}
+
+\subsection{Scrollbar}
+
+A scrollbar\index{scrollbar} is a control panel consisting of a slider
+and arrow buttons, one adjacent to each end of the slider.  Like the
+sliderbox, the scrollbar utilizes the slider in a more complex control
+panel, but whereas a sliderbox complements the slider by allowing the
+setting to be changed via a textline, the scrollbar complements the
+slider by allowing the setting to be incremented or decremented a
+fixed amount via arrow buttons.  Like sliders, scrollbars may be
+horizontally or vertically oriented; the arrow buttons are located at
+the top and bottom for vertical sliders, left and right for horizontal
+sliders.
+
+Attributes and events are identical to sliders except for the
+following differences:
+
+\attrib{setting\index{setting}}
+{Default: minimum for horizontal sliders, maximum for vertical
+sliders.}
+
+\attrib{orient\index{orient}}
+{Default: \tp{:vertical}.}
+
+\mfpar{scrollbars}
+
+\function{make-scrollbar\index{make-scrollbar}}
+{width height min max \&rest other-initargs} 
+{returns a new instance of a scrollbar with the specified parameters
+(similar to \tp{make-slider}).}
+
+\subsection{Scrolling-list} \label{sec:scrolling-list}
+
+A scrolling-list\index{scrolling-list} is like a menu, except that it
+may contain a variable number of items, whose text is determined
+dynamically, and the list of items may be too big to fit in the
+provided vertical area.  To handle that case a scrollbar is provided
+to enable the user to change which part of the list is visible.  The
+scrollbar's knob is always scaled to match the proportion between the
+visible portion of the list and the entire list.
+
+The button height used by the \tp{make-list-button} function
+depends on the font.  The maximum number of buttons that can be put
+into a scrolling list will depend on the button height, and is limited
+by the X window system address space.  A scrolling list can have up to
+$B_{max}$ buttons, where $B_{max}$ is related to the font height $H_f$
+for the font in use in the scrolling list by $B_{max} = 32,768 / (10 +
+H_f)$.  This limitation comes from the fact that buttons are placed in
+a window that moves with respect to the visible window in the
+scrolling list.  The y address of a button window must be in the range
+from -32,767 to 32,768.
+
+In addition to selecting or deselecting an item with the left mouse
+button, the scrolling list will \emph{delete} an item when the user
+presses the \emph{middle} mouse button.  When you click on an item
+with the middle mouse button, a confirmation box appears.  If you
+press ``Confirm'', the item is deleted.  If you press ``Cancel'', no
+action is taken and the items and list remain as before.  This feature
+can be enabled or disabled for each instance of a scrolling list, as
+described below.
+
+\attpar{scrolling-lists}
+
+\attrib{items\index{items}}
+{a list of text strings that appear in the list buttons, one per
+button, set when the scrolling list is created.  Type: \tp{list}.
+Default: nil.  \textit{write-only}, i.e., it can be provided as an
+initialization parameter and can be set later (see \tp{(setf items)},
+below).}
+
+\attrib{buttons\index{buttons}}
+{a list of buttons, representing the items in the scrolling-list.  The
+initial list of buttons is determined by \tp{items}, and buttons
+may be subsequently added by using \tp{make-list-button} and
+\tp{insert-button} (or the combination
+\tp{make-and-insert-list-button} function), and removed using the
+\tp{delete-button} function, as described below.  Type:
+\tp{list}.  \textit{read-only}.}
+
+\attrib{enable-delete\index{enable-delete}}
+{A boolean quantity that, when \tp{t}, enables the middle mouse
+button to be used to delete items from the scrolling list.  When
+\tp{nil}, the middle mouse button is disabled.  The default is
+\tp{nil}.}
+
+\annpar{scrolling-lists}
+
+\event{inserted\index{inserted}}{b}
+{announced when button \tp{b} is inserted into the list.}
+
+\event{deleted\index{deleted}}{b}
+{announced when button \tp{b} is deleted from the list.}
+
+\event{selected\index{selected}}{b}
+{announced when button \tp{b} is selected.}
+
+\event{deselected\index{deselected}}{b}
+{announced when button \tp{b} is deselected.}
+
+\mfpar{scrolling-lists}
+
+\function{make-scrolling-list\index{make-scrolling-list}}
+{width height \&rest other-initargs}
+{returns an instance of \tp{scrolling-list} with the specified
+parameters.  The \emph{width} and \emph{height} parameters are the
+width and height in pixels of the frame containing the scrolling list.
+Both are required.}
+
+\function{make-list-button\index{make-list-button}}
+{scr label \&key justify button-type ulc-y}
+{Returns a button, sized for scrolling-list \emph{scr} with label
+\emph{label}, and with justification and button-type as specified,
+positioned at \emph{ulc-y} (the x coordinate is always 0).  The
+default for \emph{justify} is \tp{:left}, for button-type is
+\tp{:hold} and for ulc-y, 0.  The button will have the same
+graphic characteristics as the scrolling-list, i.e., the foreground
+color, background color, border color, etc. and will have the window
+of \emph{scr} as its parent, but will be unmapped initially.}
+
+\method{insert-button\index{insert-button}}
+{(b button) (s scrolling-list)}
+{inserts button \tp{b} into scrolling-list \tp{s}, assuming it
+was made by a call to \tp{make-list-button}, maps the button and
+adjusts the scrollbar in \tp{s}.}
+
+\function{make-and-insert-list-button\index{make-and-insert-list-button}}
+{scr label \&rest other-initargs}
+{combines the action of \tp{make-list-button} and \tp{insert-button}.}
+
+\method{delete-button\index{delete-button}}
+{(b button) (s scrolling-list)}
+{deletes button \tp{b} from scrolling-list \tp{s}, after
+deselecting it if it is selected.}
+
+\method{select-button\index{select-button}}{b (s scrolling-list)}
+{selects button \tp{b} in scrolling-list \tp{s}, if not
+already selected.  Returns \tp{t}, unless the button is already
+selected, in which case it returns \tp{nil}.}
+
+\method{deselect-button\index{deselect-button}}{b (s scrolling-list)}
+{deselects button \tp{b} in scrolling-list \tp{s}.  Returns
+\tp{nil}.}
+
+\method{(setf items)\index{items}}{items (s scrolling-list)}
+{removes any buttons in scrolling list s and makes new buttons with
+labels from items, a list of strings.}
+
+Note that \emph{items}, is not readable, only settable.
+
+Since the caller or user of the scrolling-list provides the buttons,
+the caller may register with the buttons' \tp{button-on} and
+\tp{button-off} events, or with the scrolling-list
+\tp{selected} and \tp{deselected} events.
+
+Sometimes it is desirable to have a scrolling-list in which only one
+item can be selected at any one time, analogous to the radio-menu.
+The following function creates a scrolling-list variant with this
+property, so that when an item is selected, clicking on another item
+not only selects the new item, it also deselects the previously
+selected item.
+
+\function{make-radio-scrolling-list\index{make-radio-scrolling-list}}
+{width height \&rest other-initargs}
+{returns an instance of \tp{scrolling-list} with the specified
+parameters and with the additional constraint that one and only one
+item at any time is selected, just exactly like the
+\tp{radio-menu}.}
+
+\function{reorder-buttons\index{reorder-buttons}}{scr btn-list}
+{replaces the buttons in \tp{scr} with \tp{btn-list}, a reordered list
+of the SAME buttons, and updates the y coordinates of their windows to
+reflect the new order.}
+
+\section{Dialog boxes} \label{sec:dialog}
+
+This section describes the ``standard'' dialog boxes that SLIK
+provides.  These SLIK objects use the ``nested X event loop''
+mechanism described in section \ref{sec:xeventfns}, so when your
+program calls one of the functions described below, the function does
+not return until the user has pressed the appropriate button in the
+dialog box.
+
+Note that using these dialog boxes may also require that you provide
+some explicit code to take action in case X events may be dropped
+because of the use of a nested event level, as described in section
+\ref{sec:xeventfns}.
+
+\subsection{Acknowledge box}
+
+An acknowledge box contains one or more lines of text and a button
+below, labeled ``Acknowledge'', so that the program can pause for the
+user to read the message before proceeding.  The size of the box
+adapts to the specified font for the text so that it has room for the
+text and the button.  It is created by calling the following function:
+
+\function{acknowledge\index{acknowledge}}
+{message \&rest other-initargs}
+{displays \emph{message} in a window along with a button labeled
+``Acknowledge''.  \emph{Message} can be a string or a list of strings.
+If it is a list of strings each string is displayed on a separate
+line.  The function returns \tp{nil}.}
+
+\subsection{Confirmation box}
+
+A confirmation box is like an acknowledge box but has two buttons,
+labeled ``Proceed'' and ``Cancel''.  The text of the ``Proceed''
+button appears in green and the ``Cancel'' button in red.  The
+following function creates a confirmation box:
+
+\function{confirm\index{confirm}}{message \&rest other-initargs}
+{displays \emph{message}, a string or list of strings as in the
+acknowledge box, in a window along with two buttons at the bottom,
+labeled ``Proceed'' and ``Cancel''.  Returns \tp{t} if the
+``Proceed'' button is pressed, and \tp{nil} if the ``Cancel''
+button is pressed.}
+
+\subsection{Popup menu}
+
+A popup menu is like an ordinary menu except that the function
+creating it waits for the user to select an item or items from the
+menu before returning.  The menu items are displayed and below them
+are two buttons like the confirmation box buttons, labeled ``Accept''
+and ``Cancel''.  The following function produces a popup menu:
+
+\function{popup-menu\index{popup-menu}} {items \&rest other-initargs
+\&key multiple default \&allow-other-keys} {creates a window with a
+menu, and with two buttons at the bottom, labeled ``Accept'' and
+``Cancel''.  If \textit{multiple} is \tp{nil} (the default), the menu
+functions as a radio menu, i.e., only one item can be selected.  If
+\textit{multiple} is \tp{t}, then the user can select multiple items.
+The \textit{default} argument may be a non-negative integer,
+representing the item number to be selected.  If \textit{default} is
+\tp{nil} (the default), no item is selected initially.  If
+\textit{default} is a number, the corresponding menu item is initially
+selected.  When the user presses the ``Accept'' button, the function
+returns the item number (starting with 0 for the first item) or a list
+of item numbers if more than one was selected.  If the user presses
+the ``Cancel'' button, or if no item was selected, the function
+returns \tp{nil}.}
+
+\subsection{Popup color menu} \label{sec:colormenu}
+
+A popup color menu is a popup menu that specifically displays a list
+of named SLIK colors, for user selection.  The color names are shown,
+all in the foreground color\footnote{A later version of SLIK will
+perhaps have each color button label displayed in its own color.}.
+When the user selects a color the corresponding symbol in the SLIK
+package is returned.
+
+\function{popup-color-menu\index{popup-color-menu}}{\&rest initargs}
+{displays a menu of SLIK named colors, at a nested event level so the
+user must choose one of the colors.  No more than one color can be
+selected and the function returns the symbol in the SLIK package for
+that color.  If the cancel button is pressed, the function returns
+\tp{nil}.}
+
+\subsection{Popup scroll menu}
+
+A popup scroll menu includes a scrolling list and ``Accept'' and
+``Cancel'' buttons, so that you can display a long list of items for
+user selection, at a nested event processing level.
+
+\function{popup-scroll-menu\index{popup-scroll-menu}}
+{items width height \&rest initargs \&key multiple}
+{displays a scrolling list of \emph{items}, a list of strings, at a
+nested event level so the user may choose one or more menu items.  The
+\emph{width} and \emph{height} parameters are the width and height of
+the scrolling list, not the entire widget.  If \emph{multiple} is
+\tp{nil}, the default, then a \tp{radio-scrolling-list} is
+used.  Then only one item can be selected and the function returns the
+item number.  If \emph{multiple} is not \tp{nil}, then multiple
+selections are allowed and the function returns a list of item
+numbers.  The initargs are the usual SLIK frame parameters.}
+
+\subsection{Popup textline}
+
+A popup textline can be produced to use as a dialog box for input of a
+single line of information (usually short, like a number).  There is
+no class of this name, only a function.  However, the initargs can
+include parameters that are applicable to the textline, such as
+\tp{label}, \tp{title}, and parameters that specify range limits for a
+numeric textline.
+
+\function{popup-textline}{info width \&rest initargs \&key font
+\&allow-other-keys}
+{Pops up a dialog box containing a textline, of the specified width,
+and the usual ``Accept'' and ``Cancel'' buttons, at a nested event
+level.  The info parameter is a string to initially appear in the
+textline as a default.  It can be an empty string.  The initargs are
+the other parameters suitable to the textline, and the height is
+determined from the font.  The text and the label if supplied always
+start 10 pixels from the left, even if info is supplied.  When the
+Accept button is pressed, returns the string representing the edited
+text.  If the Cancel button is pressed, returns nil.}
+
+\subsection{Popup textbox}
+  
+A popup textbox includes a textbox and ``Accept'' and ``Cancel''
+buttons, so that the user can edit a multi-line passage of text at a
+nested event processing level.
+  
+\function{popup-textbox\index{popup-textbox}}
+{text width height \&rest initargs}
+{displays the supplied text, a list of strings, at a nested event
+level so the user may edit the text.  If the user presses the
+``Accept'' button, the edited text is returned.  If the ``Cancel''
+button is pressed, \tp{nil} is returned, i.e., \tp{nil} means
+that the input text should not be updated.  The initargs are the usual
+SLIK frame parameters.}
+
+As with the textbox, the editing operations are \emph{destructive}, so
+text should be a \emph{copy} if it is important to be able to preserve
+the original, or make the Cancel button effective.
+
+\section{High level control panels}
+
+Some functions require very complex control panels, but are still
+generic enough to be a part of a user interface toolkit rather than a
+part of a particular application.  The SLIK toolkit includes some
+control panels of this sort, described in this section.
+
+\subsection{Spreadsheet}
+
+The spreadsheet\index{spreadsheet} is a frame which is divided into
+rows and columns in a rectangular pattern, forming regions called
+``cells''.  Each cell may be blank or may contain one of the following
+SLIK controls: readout, textline (alpha or numeric), button, or arrow
+button.  The creator of a spreadsheet panel supplies a list of column
+widths, a list of row heights, and an array of specifications of the
+cell contents for each cell.  The lengths of the lists must match the
+dimensions of the cell specifications array.
+
+In the cell specification array, a \tp{nil} entry specifies a
+blank cell.  Otherwise, each entry is a list of:
+
+\begin{itemize}
+
+\item a keyword specifying the type of cell, \tp{:label},
+\tp{:readout}, \tp{:text}, \tp{:number}, \tp{:button},
+\tp{:left-arrow}, \tp{:right-arrow}, \tp{:up-arrow}, \tp{:down-arrow},
+
+\item the initial contents, according to the type, a string or number,
+or nil for arrow buttons,
+
+\item optionally, for number cells, the third and fourth entries are
+the lower limit and upper limit, respectively, otherwise \tp{nil}
+for each, if additional arguments are passed,
+
+\item optionally, any additional arguments to be passed as initarg
+parameters to the constructor for the control in that cell.
+
+\end{itemize}
+
+Every cell can be unique.  It is not required that all cells in a row
+or column be the same type.  Only the sizes will be uniform.
+
+The \tp{make-spreadsheet} function constructs all the specified
+controls and initializes their values where appropriate.  Each control
+is sized to the column width and row height of the column and row in
+which it is placed.  The rows and columns are 0-indexed like Common
+Lisp arrays and lists, so the upper left cell is in row 0, column 0.
+
+\attpar{spreadsheets}
+
+There are no user readable or settable attributes, beyond those of the
+frame containing the spreadsheet cells.
+
+\annpar{spreadsheets}
+
+\event{user-input\index{user-input}}{row col info}
+{announced for a cell that accepts user interaction, i.e., a text
+cell, a number cell or a button (ordinary or arrow).  The row and col
+parameters identify the cell's position, and the info is, for text and
+number cells, the new value the user input, while for a button, the
+info is the integer 1 if mouse button 1 was pressed, and 2 if mouse
+button 2 was pressed.}
+
+\mfpar{spreadsheets}
+
+\function{make-spreadsheet\index{make-spreadsheet}}
+{row-hgts col-wds cell-specs \&rest pars}
+{returns a spreadsheet constructed according to the input parameters,
+where row-hgts is a list of integers specifying the row heights in
+pixels, col-wds is a similar list for the column widths, and
+cell-specs is the array specifying what, if anything, is in each
+cell, as described above.  The rest of the input parameters will be
+used as initialization arguments to construct the frame containing the
+spreadsheet, and will be passed along as initialization arguments to
+the cell constructors.  If other initialization arguments are provided
+for individual cells in the cell-specs array, they override these
+input parameters.}
+
+\function{contents\index{contents}}{sheet row col}
+{returns the contents of the control in the cell in spreadsheet
+\emph{sheet} at place \emph{row}, \emph{col}.  If the control is a
+button, the label is returned, if it is a textline or readout, the
+info is returned.  If the cell is empty or other than the above, the
+function returns \tp{nil}.}
+
+\function{set-contents\index{set-contents}}{sheet row col newval}
+{updates the contents of the control in the cell in spreadsheet
+\emph{sheet} at place \emph{row}, \emph{col}.  The newval parameter
+should be a string or number according to the type of the control.  If
+the control is a button, the label is updated, if it is a textline or
+readout, the info is updated.  For other types of cells (including
+empty cells), no action is taken.}
+
+\function{erase-contents\index{erase-contents}}{sheet row col}
+{erases the readout or textline in position \emph{row}, \emph{col} in
+spreadsheet \emph{sheet} to blank, and resets the border color if a
+textline.  It is an error for the cell at that position to be empty or
+contain another type of control.}
+
+\function{set-button\index{set-button}}{sheet row col newval}
+{sets the button at position \emph{row}, \emph{col} of spreadsheet
+\emph{sheet} to off or on according as \emph{newval} is \tp{nil}
+or not \tp{nil}.  It is an error if the cell at this position does
+not contain a button.}
+
+\function{cell-object\index{cell-object}}{sheet i j}
+{returns the widget at position i,j in sheet.}
+
+An example use of the spreadsheet in the Prism system is shown in
+figure~\ref{fig:spreadsheet}.
+
+\begin{figure}[htb]
+\begin{center}
+\vspace*{4mm}
+\leavevmode
+\epsfbox{point-dose.ps}
+\end{center}
+\caption{The point dose panel in the Prism system uses the SLIK
+spreadsheet.} \label{fig:spreadsheet}
+\end{figure}
+
+\subsection{2d-plot} \label{sec:2dplot}
+
+A 2d-plot\index{2d-plot} is a complex panel providing a way to display
+one or more simple line graphs or plots of functions, with labeled
+coordinate axes and some flexibility of user control.
+
+The \tp{2d-plot} class is a subclass of the frame class, for
+displaying multiple series plots of 2d-coordinates.  There is support
+for axis labels on all four sides of the plot and two types of
+gridlines.  At runtime, the plot ranges can be changed via
+user-modifiable text boxes to allow user control over the view.
+Finally, a pair of sliders (crosshair) is user settable by simply
+clicking anywhere on the plot.  This allows the user finer-grained
+information about the x-y coordinates of a pixel in the graph.
+
+\attpar{2d Plots}
+
+\attrib{bottom-label\index{bottom-label}}
+{the string which will appear below the plot.  Default:
+\tp{"x-axis"}}
+
+\attrib{top-label\index{top-label}}
+{the string which will appear above the plot.  Default: \tp{""}}
+
+\attrib{left-label\index{left-label}}
+{the string which will appear to the left of the plot.  Default:
+\tp{"y-axis"}}
+
+\attrib{right-label\index{right-label}}
+{the string which will appear to the right of the plot.  Default:
+\tp{"y-axis"}}
+
+\attrib{pad\index{pad}}
+{the size in pixels of the border around the plot where the labels and
+text boxes go.  Default: 40. Type: \tp{clx:card16}}
+
+\attrib{max-x-value\index{max-x-value}}
+{the maximum value plotted on the x-axis.  Default: 100  Type: number}
+
+\attrib{min-x-value\index{min-x-value}}
+{the minimum value plotted on the x-axis.  Default: 0  Type: number}
+
+\attrib{max-y-value\index{max-y-value}}
+{the maximum value plotted on the y-axis.  Default: 100  Type: number}
+
+\attrib{min-y-value\index{min-y-value}}
+{the minimum value plotted on the y-axis.  Default: 0  Type: number}
+
+\attrib{epsilon\index{epsilon}}
+{the minimum allowable difference between corresponding max and
+min values.  Default: 1  Type: number}
+
+\attrib{x-units-per-tick\index{x-units-per-tick}}
+{The distance in x-coordinates between tick marks on the graph.  
+Default: 20  Type: number}
+
+\attrib{y-units-per-tick\index{y-units-per-tick}}
+{The distance in y-coordinates between tick marks on the graph.  
+Default: 20  Type: number}
+
+\attrib{tick-style\index{tick-style}}
+{The type of tick style desired for the grid. Default: :grid
+Type: \tp{(member :tick :grid :none)}}
+
+This attribute allows the selection of three different tick/grid
+styles.  The \tp{:grid} style draws gray-dashed lines across the
+whole plot, The \tp{:tick} style draws short tick marks along the
+border of the plot, and the \tp{:none} style does not draw any
+lines or ticks.
+
+\attrib{tick-box-color\index{tick-box-color}}
+{The background color for the text boxes which modify the
+units-per-tick.  Default: \tp{'black} Type: symbol}
+
+\attrib{x-scale-factor\index{x-scale-factor}}
+{The ratio of the bottom x-coordinates to the top x-coordinates.  When
+this value is initialized to a number, the top x-coordinate text-boxes
+are shown and their values satisfy the constraint: top =
+x-scale-factor * bottom.  Since the top text-box is editable, this
+should NOT be set to 0.  Default: \tp{nil}}
+
+\attrib{y-scale-factor\index{y-scale-factor}}
+{The ratio of the left y-coordinates to the right y-coordinates.  When
+this value is initialized to a number, the right y-coordinate
+text-boxes are shown and their values satisfy the constraint: right =
+x-scale-factor * left.  Since the right text-box is editable, this
+should NOT be set to 0.  Default: \tp{nil}}
+
+\attrib{redraw\index{redraw}}
+{The current state of auto-redraw for the plot.  When this value is
+set to \tp{nil}, changes can be made to the 2d-plot without an
+automatic refresh occuring.  This can be useful for doing batch
+updates of the plot data followed by a single refresh.  Default:
+\tp{t}}
+
+\attrib{x-slider-val\index{x-slider-val}}
+{The position of the x-coordinate slider bar.  Default: 0  Type:
+number}
+
+\attrib{x-slider-val\index{y-slider-val}}
+{The position of the y-coordinate slider bar.  Default: 0  Type:
+number}
+
+\annpar{2d plots}
+
+\event{new-slider-val\index{new-slider-val}}{plot}
+{This event is announced when the slider bar values are updated via
+the user clicking the mouse.}
+
+\mfpar{2d plots}
+
+\function{make-2d-plot\index{make-2d-plot}}
+{width height \&rest initargs}
+{returns an instance of a 2d-plot with the specified width, height and
+other attributes, just as for \tp{make-frame} (see
+page~\pageref{pg:makeframe}).}
+
+\function{remove-series\index{remove-series}}{plot id}
+{remove each series from the plot whose key value is equal to id}
+
+\function{update-series\index{update-series}}{plot id color series}
+{update a series whose key value is equal to id}
+
+Both \tp{update-series} and \tp{remove-series} change the
+state of the data which belongs to the plot.  After the update, the
+plot is redrawn to reflect the new data only if the plot's redraw
+attribute is not \tp{nil}.  The values and type of the id can be
+arbitrary provided that \tp{(equal id1 id2)} returns true when
+desired. The series is represented as a list of pairs of numbers.  For
+example, \tp{((0 0) (20 3) (40 7))} is a valid series.
+
+\chapter{Graphics and images}
+
+SLIK includes some rudimentary support for creating frames with
+application generated graphics and images.  Graphics\index{graphics}
+can include drawing lines, text, polygons, and filled areas in a
+window.  SLIK does not provide a drawing model or extensive support
+for drawing application graphics.  Your application code should call
+the appropriate CLX functions to draw in the pixmap or window of a
+SLIK \emph{picture} object, described below.  However, X event
+dispatching \emph{is} provided so that an application can process
+input events in the same way as for SLIK widgets.
+
+Some supplementary functions are provided to do common operations with
+image and graphic data, and the SLIK object, \tp{picture}, is
+provided with some additional special attributes and capabilities to
+make interactive graphics applications without dealing directly with X
+event handling, and with complete consistency with the rest of SLIK.
+
+\section{Images}
+
+In SLIK, images\index{images} are 2 dimensional data arrays of type
+\tp{(unsigned-byte~16)}, representing gray levels as in, for
+example, medical computed tomography images.  The data can be
+displayed on an 8-bit display by mapping through a linear gray scale
+map, so that for each pixel value there is a corresponding gray level
+on the screen.  SLIK allocates 128 gray levels in the screen default
+colormap, along with the colors mentioned in section
+\ref{sec:clx-support}.  SLIK provides functions for associating raw
+image array values with CLX pixel values according to a specified
+linear gray scale map, and producing a \tp{clx:image} from the raw
+data.  SLIK also provides a means for just mapping the image through a
+similar gray map but producing a 2 dimensional array of
+\tp{(unsigned-byte~8)} representing simply the gray level number
+between 0 and 127 rather than the CLX pixel value.
+
+\mfpar{images}
+
+\function{make-graymap\index{make-graymap}}{window level range-top\\
+	\hspace*{5cm} \&key old-map (gray-pixels *default-gray-pixels*)}
+{returns an array of \tp{clx:pixel} values, one for each possible
+image array value, from 0 to \tp{range-top}, corresponding to a
+linear gray ramp, centered on \emph{level} and with width
+\emph{window}.  All input parameters are \tp{fixnums}.  If window
+and level are such that the ramp would extend below 0 or above
+\tp{range-top}, the ramp is truncated, i.e., it is not an error to
+have for example a window of 500 and a level of 200.  The
+\emph{range-top} is the highest value expected to appear in any raw
+image data array in your application.  If provided, \emph{old-map},
+also an array of \tp{clx:pixel} values, is reused, and its
+elements are set to the computed values.  Otherwise a new pixel value
+array, one dimensional, of length \tp{range-top}, is created,
+filled and returned.}
+
+\function{map-image-to-clx\index{map-image-to-clx}}{map image drawable}
+{Writes image array \emph{image} to \emph{drawable} by composing
+\emph{image} with the gray scale map \emph{map}.  The map must be an
+array specifying a CLX pixel value to be output for each possible
+image data value.}
+
+In this function, \emph{image} is a
+\tp{(simple-array~(unsigned-byte~16)~2)}.  The gray scale map,
+\emph{map}, is obtained from the \tp{make-graymap} function
+described above.  \emph{Drawable} can be a pixmap or window into which
+the image will be written.
+
+\function{make-raw-graymap\index{make-raw-graymap}}
+{window level range-top\\
+	\hspace*{5cm} \&key old-map (num-pixels *num-gray-pixels*)}
+{returns an array of byte values, one for each possible image array
+value, corresponding to the standard linear gray map used to map CT
+image data to a gray scale displayed image.  Level is the image value
+corresponding to the middle of the gray range and window is the width
+of the ramp.  The array returned has an entry for each possible image
+array element value, i.e., from 0 to \tp{range-top}, as in
+\tp{make-graymap}, but the values returned are just numbers in the
+range from 0 for black to 127, for white.  \emph{Range-top} is the
+highest value that can appear in an image array, usually 4095.  Here
+also, \emph{old-map} is reused if present, otherwise the function
+creates a new one.}
+
+\function{map-raw-image\index{map-raw-image}}
+{raw-image window level range \&optional old-array}
+{returns an array of bytes the same dimensions as \emph{raw-image}, an
+array of \tp{(unsigned-byte 16)}, but with the values in raw-image
+converted to gray scale values in the range 0 to 127 according to the
+linear ramp determined by window and level, the width and center of
+the ramp.  The new array has elements of type \tp{(unsigned-byte
+8)} Range is the highest value that can occur in the raw-image.  If
+old-array is provided it must be the same dimensions as raw-image, and
+it is reused instead of allocating a new array.}
+
+\function{get-z-array\index{get-z-array}}{vox z0 zsize z}
+{returns a 2-D array computed from the 3-D array of type
+\tp{(unsigned-byte~16)} \emph{vox}, at the z coordinate \emph{z},
+given origin \emph{z0} and overall size, \emph{zsize}, of the
+3-dimensional array in the z direction.  The z direction is dimension
+0 of the array, and y, x are dimensions 1 and 2 respectively.  The
+\emph{z0, zsize} and \emph{z} parameters are of type
+\tp{single-float}.}
+
+\section{Pictures} \label{sec:picture}
+
+For creating image displays and graphics SLIK provides the
+\tp{picture} class, a subclass of \tp{frame}.  A
+picture\index{picture} is a frame with an additional attribute, a
+pixmap, that is set to be the window background.  The window and
+pixmap attributes of the picture are bona fide CLX window and pixmap
+data structures.  You can draw graphics, text and images in these as
+described in the CLX documentation.  Since the pixmap is the
+background for the window, you may do all drawing operations in the
+window, or draw an image in the pixmap and line graphics in the
+window, or some other combination.
+
+Pictures also provide facilities for handling graphic input for
+drawing and direct manipulation of the contents of the window.  They
+do this by forwarding (announcing) the various X events that a typical
+application program would need to handle.  These are handled as events
+in the same way and with the same functions that are described in
+section \ref{sec:events}.  In particular, since the contents of a
+picture are determined entirely by application code, there is no
+automatic handling of X window exposure events, but the exposure event
+is announced by the picture, so your code may provide an audience for
+this (using \tp{add-notify}), including a function that will
+refresh the picture contents.  Note, however, that the picture pixmap
+is set to be the window background, so the contents of the pixmap will
+appear in the window on exposure.  The description following of the
+\tp{pixmap} attribute provides some suggestions for handling this
+event.
+
+Further information about interactive input in pictures may be found
+in section \ref{sec:input}.
+
+Pictures also include optional entities called ``pickable objects'',
+such as small squares and circles that can intercept and announce
+input events that are directed to the objects.  These objects and
+matters related to them are described in section \ref{sec:pick}.
+
+\attpar{pictures}
+
+\attrib{pixmap\index{pixmap}}
+{the CLX pixmap that is associated with the window of the picture.}
+
+The pixmap is set to be the background for the window.  This means
+that if the window is erased, it will show the contents of the pixmap.
+Initially the pixmap is set to the window background color, and you
+may leave it that way.  Alternatively, you may draw into the pixmap to
+provide a background picture, while drawing foreground information in
+the window.  A third approach is to draw into the pixmap and then copy
+the pixmap to the window, so that the picture is always automatically
+refreshed on exposure after the window is partially or totally
+obscured.  This will work because when a window is exposed, the
+exposed area is filled with the contents of the background pixmap.  In
+addition SLIK provides a refresh method that adds the rendering of
+pickable objects (see section \ref{sec:pick}) after the background is
+displayed.
+
+Any graphic and image data that are only drawn in the window and not
+the pixmap must be refreshed by application code when exposure events
+take place.  This can be arranged by providing an action function to
+the \tp{exposure} event for the picture.  The exposure event is
+described on page \pageref{pg:frameann}.
+
+\mfpar{pictures}
+
+\function{make-picture\index{make-picture}}
+{width height \&rest initargs}
+{returns an instance of a picture with the specified width, height and
+other attributes, just as for \tp{make-frame} (see
+page~\pageref{pg:makeframe}).}
+
+\function{display-picture\index{display-picture}}{pic}
+{copies the pixmap to the window, refreshes any pickable objects that
+have been previously associated with the picture, and draws the border
+of the window.}
+
+\function{erase-bg\index{erase-bg}}{pic}
+{sets both the pixmap and the window to the background color for the
+picture.  If you want to just clear the window while retaining the
+pixmap contents as the window background, use \tp{erase},
+described on page \pageref{pg:erase}.}
+
+\section{Providing interactive input} \label{sec:input}
+
+Usually the contents of a window are altered or updated in response to
+some user interface event, i.e., as a result of the SLIK event
+processing loop calling an action function that is notified of the
+event or a related event.  It is also necessary for an application to
+be able to accept input from mouse or pointer events in a graphic or
+image display window.  This input capability is provided by an event
+interface included as part of the \tp{picture} class.
+
+A \emph{picture} announces SLIK events which correspond to X events
+that occur within the picture's window.  Your code should provide
+action functions for any of these SLIK events that you wish your
+application to handle.  The announcements for each simply pass the X
+event parameters on to your action function.  This provides complete
+flexibility without interfering with the behavior of any other SLIK
+objects, even if you include them as child windows within your
+pictures that have graphics in them.
+
+\annpar{pictures}
+
+In the following picture event descriptions, the parameters \emph{x,
+y} refer to the pointer coordinates in pixels (type \tp{integer}),
+in the window in which the X event took place, the \emph{state}
+parameter is the state mask (type \tp{clx:mask16}) representing
+the state of mouse buttons and modifier keys just prior to the event
+and \emph{code} refers to the button number of the mouse button that
+was pressed or released, or the keycode of the key that was pressed
+(type \tp{integer}).  They are provided to your action function in
+the order shown, after the audience object specified in your call to
+\tp{add-notify} and the announcing object.  So, for example, in
+your application if you provide a function to respond to a
+\emph{button-press} event for a picture, your function should take a
+parameter list consisting of the target object, the picture instance,
+the button code, the x coordinate of the pointer and the y coordinate
+of the pointer.
+
+If a button-press, button-release or motion-notify X event occurs
+while the pointer is on a \emph{pickable object} (see section
+\ref{sec:pick}) the event is not passed on by the corresponding SLIK
+events below, but is handled by the pickable object itself.
+
+\event{enter-notify\index{enter-notify}}{x y state}
+{announced when the pointer enters the picture window.}
+
+\event{leave-notify\index{leave-notify}}{x y state}
+{announced when the pointer leaves the picture window.}
+
+\event{button-press\index{button-press}}{code x y}
+{announced when the mouse button is pressed while within the picture
+window.}
+
+\event{button-release\index{button-release}}{code x y}
+{announced when the mouse button is released while within the picture
+window.}
+
+\event{motion-notify\index{motion-notify}}{x y state}
+{announced when the pointer moves within the picture window.}
+
+\event{key-press\index{key-press}}{code state}
+{announced when a keyboard key is pressed while the picture window has
+the input focus.}
+
+\section{Pickable objects} \label{sec:pick}
+
+In some applications the graphic objects that appear in a picture may
+need to have \emph{pickable objects}\index{pickable objects}
+associated with them.  A pickable object defines a region in the
+picture which can be pointed to and clicked on (or \emph{selected\/})
+with the mouse.  When the user selects one of these pickable objects
+and optionally drags it, the associated graphical object should be
+updated in a manner specific to the type of graphic object selected.
+SLIK provides the connection between pointer events and the selection
+of a pickable object.  The applications programmer provides the action
+appropriate to each object that is picked.  In order for the
+programmer to provide this, a pickable object includes three events in
+its interface.
+
+A pickable object contains a \emph{selected\/} event which, when
+announced, signifies that the pickable object has been selected by the
+user (by a ``button-press'' X event).  There is a \emph{deselected}
+event which, when announced, signifies that the object has been
+deselected (by a ``button-release'' X event).  A \emph{motion} event,
+when announced, signifies that the pointer is on the object, and has
+moved, while the object is selected.
+
+Note that if an action for selection of a pickable object uses a
+nested event level, e.g. a dialog box, the pickable object may not
+``see'' its \tp{button-release} event.  You should in that case
+provide some explicit code to take the appropriate action, as if
+deselection had been announced anyway.  See section
+\ref{sec:xeventfns} for more information.
+
+Each picture contains a \emph{pick-list\/}.  The \emph{pick-list} is a
+list of all the pickable objects to be displayed in the picture.  The
+applications programmer creates pickable objects and adds them to the
+pick list as appropriate.  When the picture detects any of the three
+relevant X events, button-down, button-up or pointer motion, it first
+checks the pick list before announcing the corresponding generic
+picture event.  If the pick list is non-empty and one of the items is
+picked, then no other events are announced.
+
+The following then is also an attribute of a \emph{picture}:
+
+\attrib{pick-list\index{pick-list}}
+{A list of pickable objects that are checked when button-down or
+button-up or pointer motion X events occur in the picture window.}
+
+All pickable objects have an \emph{object\/} attribute, which may be
+used to associate the pickable object with a graphic object that
+appears in the picture.  SLIK provides automatic graphic rendition of
+pickable objects in pictures, for standard pickable objects described
+here.  Pickable objects are automatically refreshed on exposure, just
+like all other SLIK entities.  However, application graphics may
+overwrite them.  Therefore it is recommended that an application that
+draws in the pixmap should use the \tp{display-picture} function
+described above to copy the pixmap to the window.  Then the
+application may add to the window its own graphics if needed, being
+careful not to obscure the pickable objects.  Application code that
+draws graphics in the window and not the pixmap should respond to
+exposure events by simply providing an action function for the
+\tp{exposure} event of the picture.
+
+\attpar{pickable objects}
+
+\attrib{object\index{object}}
+{The graphic object corresponding to this pickable object, such as a
+contour vertex or a corner of a graphic object.  Supplied at
+initialization, and \emph{read-only} after that.}
+
+\attrib{color\index{color}}
+{The CLX gcontext (not the SLIK symbol) for the color to use to draw
+the pickable object's rendition in the window.  Type:
+\tp{clx:gcontext}.  Default: the gcontext for \tp{sl:white}}
+
+\attrib{enabled\index{enabled}}
+{A boolean attribute that is \tp{t} when the pickable object should
+accept and process X events, and \tp{nil} if the pickable object
+should not accept input.  The default is \tp{t}.}
+
+\attrib{active\index{active}}
+{A boolean attribute that is \tp{t} when the pickable object is
+currently selected, and \tp{nil} otherwise.  The initial state is
+of course \tp{nil}, and is \emph{read-only} after that.}
+
+\annpar{pickable objects}
+
+\event{selected\index{selected}}{code x y}
+{Announced when the pickable object has been selected by the user,
+i.e., a mouse button was pressed while over the object.  $X$
+and $y$ are the integer window coordinates of the mouse and
+\emph{code} indicates which button was pressed.}
+
+\event{deselected\index{deselected}}{code x y}
+{Announced when the pickable object has been deselected by the user,
+i.e., the object was active (selected) and the user released a mouse
+button.  \emph{Code} indicates which button was released.}
+
+\event{motion\index{motion}}{x y state}
+{Announced when the pickable object is active, i.e., it was selected,
+and the pointer has moved.  $X$ and $y$ are the coordinates of the new
+pointer location.  \emph{State} indicates which button or buttons were
+down when the pointer moved.  The pickable object does not move.  It
+is up to the application code to decide whether to move the pickable
+object or to ignore the pointer motion, e.g., in some circumstances
+only button 1 should move the object, since button 2 and 3 are
+assigned to other functions.}
+
+\mfpar{pickable objects}
+
+\function{add-pickable-obj}{po pic}
+{adds the pickable object \emph{po} to the pick list of picture
+\emph{pic}.  The parameter \emph{po} can also be a list of pickable
+objects.}
+
+\function{find-pickable-objs}{obj pic}
+{returns a list of all pickable objects in the pick list of picture
+\emph{pic}, that correspond to object \emph{obj}.}
+
+\function{remove-pickable-objs}{obj pic}
+{replaces the pick list in \emph{pic} with a new list in which all
+pickable objects corresponding to \emph{obj} are omitted.  Returns the
+new list.}
+
+\method{update-pickable-object\index{update-pickable-object}}
+{(obj pickable-object) x y}
+{updates the position of \emph{obj} to the new position indicated by
+the pixel coordinates \emph{x} and \emph{y}.}
+
+SLIK provides several standard types of pickable objects, described in
+the following sections.
+
+\subsection{Rectangle}
+
+A rectangle\index{rectangle} is a pickable object with the following
+additional attributes:
+
+\attrib{ulc-x\index{ulc-x}}
+{The screen space x-coordinate of the upper left corner of the
+rectangle in the picture, a \tp{fixnum}.}
+
+\attrib{ulc-y\index{ulc-y}}
+{The screen space y-coordinate of the upper left corner of the
+rectangle in the picture, a \tp{fixnum}.}
+
+\attrib{width\index{width}}
+{The full width in pixels of the rectangle, a \tp{fixnum}.}
+
+\attrib{height\index{height}}
+{The full height in pixels of the rectangle, a \tp{fixnum}.}
+
+\attrib{filled\index{filled}}
+{A boolean value, where \tp{t} means the rectangle is filled, and
+\tp{nil}, the default, means that the rectangle is drawn open,
+just the lines for the sides.}
+
+The rectangle has the following constructor function:
+
+\function{make-rectangle\index{make-rectangle}}
+{obj ulc-x ulc-y width height \&rest keyargs}
+{Creates and returns a rectangle with the specified initialization
+arguments.}
+
+\subsection{Square}
+
+A square\index{square} is a subclass of the rectangle.  It is
+specified by providing the pixel coordinates of the center of the
+square, rather than the coordinates of the corners.  The width and
+height are constrained to be equal.  Anytime one is set the other is
+set automatically to the same value.  The square generates the corner
+coordinates automatically when it is created and again any time the
+center coordinates or width (or height) are updated.
+
+It has the following attributes besides those of the rectangle:
+
+\attrib{x-center\index{x-center}}
+{The x coordinate of the center of the square, in the window.  Type:
+\tp{fixnum}.}
+
+\attrib{y-center\index{y-center}}
+{The y coordinate of the center of the square, in the window.  Type:
+\tp{fixnum}.}
+
+It is intended that user code should only set these attributes and the
+\emph{width} and \emph{filled} attributes inherited from the
+\tp{rectangle}, since the other rectangle attributes are computed
+automatically from the center and width parameters.  All attributes
+may be read.
+
+The square has the following constructor function:
+
+\function{make-square\index{make-square}}{obj x y \&rest keyargs}
+{Creates and returns a square with the specified initialization
+arguments.  For the square, the width takes on a default value of 6
+pixels if it is not provided.}
+
+\subsection{Circle}
+
+A circle\index{circle} is a pickable object with the following
+additional attributes:
+
+\attrib{x-center\index{x-center}}
+{The x coordinate of the center of the circle, in the window.  Type:
+\tp{fixnum}.}
+
+\attrib{y-center\index{y-center}}
+{The y coordinate of the center of the circle, in the window.  Type:
+\tp{fixnum}.}
+
+\attrib{radius\index{radius}}
+{The radius of the circle in pixels.  Type: \tp{fixnum}.  Default:
+4.}
+
+\attrib{filled\index{filled}}
+{A boolean value, where \tp{t} means the circle is filled, and
+\tp{nil}, the default, means that the circle is drawn open, just
+the line for the circumference.}
+
+The circle has the following constructor function:
+
+\function{make-circle\index{make-circle}}{obj x y \&rest keyargs}
+{Creates and returns a circle with the specified initialization
+arguments.}
+
+\subsection{Segment}
+
+A segment\index{segment} is a pickable object with the following
+additional attributes:
+
+\attrib{x1\index{x1}}
+{The x coordinate of the ``first'' end of the segment.  Type:
+\tp{fixnum}.}
+
+\attrib{y1\index{y1}}
+{The y coordinate of the ``first'' end of the segment.  Type:
+\tp{fixnum}.}
+
+\attrib{x2\index{x2}}
+{The x coordinate of the ``second'' end of the segment.  Type:
+\tp{fixnum}.}
+
+\attrib{y2\index{y2}}
+{The y coordinate of the ``second'' end of the segment.  Type:
+\tp{fixnum}.}
+
+\attrib{thickness\index{thickness}}
+{The number of pixels thick the line segment should be drawn.  A
+thickness of 0 means the line is not displayed, though it remains
+responsive to mouse button and motion events.  Type \tp{fixnum}.
+Default: 1.}
+
+\attrib{tolerance\index{tolerance}}
+{The number of pixels away from the line segment the pointer can be
+and still be considered ``on'' the segment.  This is determined as if
+the line thickness were one pixel even if it is drawn thicker or
+thinner.  Type \tp{fixnum}.  Default: 1.}
+
+A segment is a line segment on the display, with which an application
+can create a polygon or contour with sides that react to pointer and
+mouse operations.
+
+A segment responds to selection (and subsequent motion) events when
+the pointer is within the specified tolerance of the line segment.
+
+The segment has the following constructor function:
+
+\function{make-segment\index{make-segment}}
+{obj x1 y1 x2 y2 \&rest keyargs}
+{Creates and returns a segment with the specified initialization
+arguments.}
+
+\chapter{Hard copy using PostScript}
+
+The PostScript module in SLIK provides functions for printing text and
+drawing graphics on a page or series of pages, by writing PostScript
+commands to a file.  All the functions are in the \tp{postscript}
+package, whose nickname is \tp{ps}.
+
+\mfpar{PostScript operations}
+
+\function{initialize\index{initialize}}
+{strm left bottom width height \&optional (pagewid 8.5) (pageht 11.0)}
+{Writes to the output stream strm a collection of low level subroutine
+definitions used by the Postscript package, and sets the margins and
+clipping area according to the parameters, left, bottom, width, and
+height, which are in inches.}
+
+\function{set-clip\index{set-clip}}{strm left bottom width height}
+{set the clipping window according to the margins and size specified,
+relative to the current origin.}
+
+\function{set-font\index{set-font}}{strm fontname size}
+{writes the commands to select the specified font by name and set the
+current type size to size, in points.}
+
+\function{set-position\index{set-position}}{strm horiz vert}
+{sets the current text position to horiz and vert in inches, allowing
+for the left margin, where vert is the distance down from the top.
+This assumes that the origin is at the lower left corner of the page.}
+
+\function{put-text\index{put-text}}{strm str}
+{writes the string str at the current position and sets the current
+position to the beginning of the next line.}
+
+\function{translate-origin\index{translate-origin}}{strm x y}
+{translates the origin by a displacement of x and y inches from the
+current origin.}
+
+\function{indent\index{indent}}{strm indentation}
+{sets the horizontal position to indentation in inches, to make columns
+that are not at the left margin.  To reset, pass in a value of 0.}
+
+\function{set-graphics\index{set-graphics}}
+{strm \&key color width pattern}
+{sets the current color, line width and line dash pattern according to
+color, a list of RGB values, width, a number, and pattern, a string
+containing a Postscript dash array with brackets, and a number, the
+offset.  If a parameter is omitted, that graphic attribute is not
+changed.}
+
+\function{draw-image\index{draw-image}}
+{strm x y width height xpix ypix image}
+{draws a gray scale image with lower left corner at position x,y in
+inches relative to the current origin, in a rectangle of dimensions
+width and height, in inches, from the array, image, of 8-bit bytes,
+which is xpix columns by ypix rows.  The byte values are assumed to
+range between 0 and 127.}
+
+\function{draw-line\index{draw-line}}{strm x1 y1 x2 y2}
+{draws a line from x1, y1 to x2, y2, coordinates in inches, relative to
+the current origin, in the current color, line width and dash
+pattern.  The path is reset before drawing.}
+
+\function{draw-lines\index{draw-lines}}
+{strm vertex-list \&optional close fill}
+{draws the lines specified by vertex-list, a list of x,y pairs, vertex
+coordinates in inches, as a series of connected segments, in the
+current color, line width and dash pattern, optionally filling with
+the current color.}
+
+\function{draw-rectangle\index{draw-rectangle}}
+{strm x y w h \&optional fill}
+{draws the rectangle specified by lower left corner x,y and width w and
+height h, in the current color, line width and dash pattern.}
+
+\function{draw-text\index{draw-text}}{strm x y chars}
+{draws the string chars starting at location x, y in inches in the
+current coordinate system, without starting a new line or changing the
+text line pointers.}
+
+\function{draw-point\index{draw-point}}{strm x y label size}
+{draws a plus mark whose lines are size long, at the location x, y and
+a label to the upper right.}
+
+\function{draw-grid\index{draw-grid}}{strm width height columns rows}
+{Writes to strm a postscript-defined grid width inches wide, height
+inches high, and with the number of rows and columns specified. It
+requires a defined current drawing position, which becomes the lower
+left corner of grid.  The final drawing position is the same as the
+start position.}
+
+\function{draw-poly-mesh\index{draw-poly-mesh}}
+{strm polygon mesh-size}
+{fills the region defined by polygon with a mesh whose line spacing is
+mesh-size, in the current color, restoring the current drawing
+position and clip region after completion.  Only the mesh lines are
+drawn.  The space between the lines is undisturbed.}
+
+\function{finish-page\index{finish-page}}{strm \&optional newpage}
+{outputs the current page and optionally starts a new one.}
+
+\chapter{Creating new kinds of SLIK objects} \label{sec:newobjs}
+
+This chapter describes how to add new kinds of controls or widgets to
+the tool kit.  They should be created in the \tp{slik} package,
+and should export their \tp{make-} function name and any
+attributes that are not already defined by their superclass(es), but
+which should be accessible outside of SLIK.
+
+You use the following functions in the code that creates a new kind of
+object that will handle X events:
+
+\function{register\index{register}}{obj}
+{adds the object \emph{obj} to the table of known objects and their
+associated windows, so that its event processing methods will be
+called when an X event occurs in its window.  The object must have a
+CLX window accessible by a call to an accessor function named
+\tp{window}.  If the object is an instance of a subclass of
+\tp{frame} this registration is done automatically as part of the
+initialization.}
+
+\function{unregister\index{unregister}}{obj}
+{removes \emph{obj} from the table of known objects associated with X
+events.  If the object is an instance of a subclass of \tp{frame}
+this operation is done automatically as part of the \tp{destroy}
+function call.}
+
+You may need to provide methods for the generic function
+\tp{refresh} in the \tp{slik} package (not exported) when you
+define a new type of control, or other object.
+
+\method{refresh\index{refresh}}{(object slik-object)}
+{restores the graphical and text rendition of \textit{object} in its
+current state.}
+
+Implementors of new or enhanced SLIK objects may need to know more
+about \tp{refresh}.  There is an \tp{:around} method for the
+\tp{frame} class, which calls the \tp{:before} methods, the applicable
+primary method, and the \tp{:after} methods.  Then it draws the border
+and flushes the output queue.  The primary method for \tp{frame} is
+just a stub to insure that some primary method exists for
+\tp{call-next-method} in the \tp{:around} method code.
+
+The refresh function is also specialized for more specific kinds of
+objects.  You generally augment the function by providing
+\tp{:before} and \tp{:after} methods for your specialized
+class.  You may also provide a primary method.  All the
+\tp{:before} methods will execute before the primary method, in
+order of most specific first, then the primary method, then all the
+\tp{:after} methods, in order of least specific first.  If you
+provide a primary method and you need to have the primary method for
+the parent class execute, you call \tp{call-next-method} in your
+primary method code.
+
+You may also need to provide methods for the generic function
+\tp{destroy} in the \tp{slik} package, for your new kind of
+object.  The \tp{destroy} method for frames unmaps the window (if
+necessary), destroys it and deallocates the border graphic context
+(since there is one of these for each frame).  If your new widget has
+component parts, you should provide a \tp{:before} method that
+destroys the component parts.
+
+For the following functions you provide methods where you want your
+object to respond to the corresponding X events, but you do not call
+these functions directly.  They are called by the \tp{process-events}
+loop.  In the following, the parameters are exactly as described for
+the event announcements in section \ref{sec:input}.  In order to
+continue event processing your method for any of these functions
+\emph{must} return \tp{nil}.  If your method returns \tp{t} the event
+loop will terminate and the \tp{process-events} function will return.
+
+\method{process-exposure\index{process-exposure}}
+{(obj frame) x y width height count}
+{generic function, whose methods are supplied by the code that defines
+an object that can respond to X exposure events in its associated
+window.  The default method simply calls the \tp{refresh} function
+on the announcing object.  If necessary you should provide methods for
+\tp{refresh} for your new subclass.  If that is not adequate, you
+can provide \tp{:before} and \tp{:after} methods for
+\tp{process-exposure} for your new subclass.}
+
+\method{process-enter-notify\index{process-enter-notify}}
+{(obj frame) x y state}
+{handles pointer entering the object's window.}
+
+\method{process-leave-notify\index{process-leave-notify}}
+{(obj frame) x y state}
+{handles pointer leaving the object's window.}
+
+\method{process-button-press\index{process-button-press}}
+{(obj frame) code x y}
+{handles a mouse button press event.}
+
+\method{process-button-release\index{process-button-release}}
+{(obj frame) code x y}
+{handles a mouse button release event.}
+
+\method{process-motion-notify\index{process-motion-notify}}
+{(obj frame) x y state}
+{handles a pointer motion event.}
+
+\method{process-key-press\index{process-key-press}}
+{(obj frame) code state}
+{handles a keyboard key press event.}
+
+You will also need to include calls to the \tp{announce} function
+from the \tp{events} package, described in section
+\ref{sec:events}, if your objects have events other than the one(s)
+provided by their superclass(es), or if your objects have methods that
+replace or supercede the methods for their superclass(es) where the
+events are announced.
+
+\section{Defining a new kind of SLIK object}
+
+This involves creating an entirely new kind of object - a
+specialization of the SLIK class ``frame''.
+
+\section{Specializing an existing SLIK class}
+
+This involves just specializing an existing SLIK object class - e.g.,
+making a dial with limited rotation range, or perhaps a slider with
+click stops.
+
+\bibliographystyle{unsrt}
+\bibliography{radonc}
+
+\cleardoublepage
+
+\printindex
+
+\end{document}
