@@ -81,6 +81,19 @@ active is nil, but this being non-nil overrides that.")
    (button-2-on :type ev:event
 		:accessor button-2-on
 		:initform (ev:make-event))
+
+      (enter-notify :type ev:event
+		 :accessor enter-notify
+		 :initform (ev:make-event)
+		 :documentation "Announced when the picture window
+receives an X enter-notify event.")
+
+   (leave-notify :type ev:event
+		 :accessor leave-notify
+		 :initform (ev:make-event)
+		 :documentation "Announced when the picture window
+receives an X leave-notify event.")
+
    )
 
   (:default-initargs :title "SLIK button"
@@ -210,6 +223,23 @@ parameter is t or nil."
   nil)
 
 ;;;------------------------------------------------
+
+(defmethod process-enter-notify ((b button) x y state)
+
+  "Forwards an announcement to registered parties."
+
+  (ev:announce b (enter-notify b) x y state))
+
+;;;--------------------------------
+
+(defmethod process-leave-notify ((b button) x y state)
+
+  "Forwards an announcement to registered parties."
+
+  (ev:announce b (leave-notify b) x y state))
+
+;;;--------------------------------
+
 
 (defclass icon-button (button)
 
