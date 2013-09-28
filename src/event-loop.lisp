@@ -142,7 +142,9 @@ Handles X events, notifying windows when need be."
 	  (if (not (xlib:event-listen *display*))
 	      (if *background-event-queue*
 		  (let ((ev (pop *background-event-queue*)))
-		    (eval ev))
+		    (if (functionp ev)
+			(funcall ev)
+			(eval ev)))
 		;; this will block until a new event arrives
 		(handle-event-case))
 	    (progn (look-ahead-handler)
