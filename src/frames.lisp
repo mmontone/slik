@@ -58,6 +58,12 @@
 	   :reader height
 	   :initarg :height)
 
+   (ulc-x :accessor ulc-x
+	  :initarg :ulc-x)
+
+   (ulc-y :accessor ulc-y
+	  :initarg :ulc-y)
+
    (bg-color :type symbol
 	     :accessor bg-color
 	     :initarg :bg-color

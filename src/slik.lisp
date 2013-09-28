@@ -115,6 +115,7 @@
 	   "X1" "X2" "X-CENTER" "X-SLIDER-VAL"
 	   "Y-SLIDER-VAL"
 	   "Y1" "Y2" "Y-CENTER" "YELLOW" "YELLOW-DASHED"
+	   "ULC-X" "ULC-Y"
 	   ))
 
 ;;;-------------------------------------
