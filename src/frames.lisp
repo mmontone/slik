@@ -51,11 +51,11 @@
 	  :initarg :title)
 
    (width :type xlib:card16
-	  :reader width
+	  :accessor width
 	  :initarg :width)
 
    (height :type xlib:card16
-	   :reader height
+	   :accessor height
 	   :initarg :height)
 
    (ulc-x :accessor ulc-x

@@ -94,7 +94,7 @@ always equal to screen root depth.")
 
 ;;;--------------------------------------------
 
-(defvar *default-border-style* :raised)
+(defvar *default-border-style* :flat)
 
 ;;;--------------------------------------------
 ;;; named and default fonts

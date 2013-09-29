@@ -82,7 +82,7 @@ active is nil, but this being non-nil overrides that.")
 		:accessor button-2-on
 		:initform (ev:make-event))
 
-      (enter-notify :type ev:event
+   (enter-notify :type ev:event
 		 :accessor enter-notify
 		 :initform (ev:make-event)
 		 :documentation "Announced when the picture window
