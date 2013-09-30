@@ -277,6 +277,22 @@ used.  Should do other stuff too."
   (flush-output)
   (xlib:free-gcontext (border-gc obj)))
 
+(defmethod (setf width) :after (new-width (f frame))
+  (when (slot-boundp f 'window)
+    (setf (xlib:drawable-width (window f)) new-width)
+    (refresh f)))
+
+(defmethod (setf height) :after (new-height (f frame))
+  (when (slot-boundp f 'window)
+    (setf (xlib:drawable-height (window f)) new-height)
+    (refresh f)))
+
+(defmethod (setf ulc-x) :after (new-x (f frame))
+  (setf (xlib:drawable-x (window f)) new-x))
+
+(defmethod (setf ulc-y) :after (new-y (f frame))
+  (setf (xlib:drawable-y (window f)) new-y))
+
 ;;;----------------------------------------
 
 (defmethod (setf title) :before (new-title (f frame))
